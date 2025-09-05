@@ -1,5 +1,7 @@
 package com.alberto.Spendee.sass.domain.user;
 
+import com.alberto.Spendee.sass.domain.role.Role;
+import jakarta.annotation.security.RolesAllowed;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -7,6 +9,8 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.LocalDateTime;
+import java.util.HashSet;
+import java.util.Set;
 
 @Entity
 @Table(name = "users")
@@ -35,5 +39,11 @@ public class User {
     @Column(nullable = false, unique = false)
     private String Password;
 
-
+    @ManyToMany(fetch = FetchType.EAGER)
+    @JoinTable(name = "user_roles" ,
+            joinColumns = @JoinColumn(name = "user_id"),
+            inverseJoinColumns = @JoinColumn(name = "role_id")
+    )
+    private Set<Role> roles = new HashSet<>();
+    
 }

@@ -1,0 +1,217 @@
+<!-- Sidebar Fragment -->
+<div th:fragment="sidebar">
+  <div class="modern-sidebar">
+    <!-- User Profile Summary -->
+    <div class="sidebar-user">
+      <div class="user-avatar">
+        <img th:if="${userPhotoUrl != null}" th:src="${userPhotoUrl}" alt="User Photo" class="rounded-circle" style="width:48px;height:48px;object-fit:cover;">
+        <span th:if="${userPhotoUrl == null}" th:text="${userFullName?.substring(0,1)}">U</span>
+      </div>
+      <div class="user-info">
+        <div class="user-name" th:text="${userFullName}">User Name</div>
+        <div class="user-role">Personal Account</div>
+      </div>
+    </div>
+
+    <!-- Navigation Menu -->
+    <div class="sidebar-menu">
+      <ul class="nav-list">
+        <li class="nav-item">
+          <a href="/dashboard" class="nav-link active">
+            <div class="nav-icon"><i class="fas fa-home"></i></div>
+            <span>Dashboard</span>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a href="/transactions" class="nav-link">
+            <div class="nav-icon"><i class="fas fa-exchange-alt"></i></div>
+            <span>Transactions</span>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a href="/accounts" class="nav-link">
+            <div class="nav-icon"><i class="fas fa-wallet"></i></div>
+            <span>Accounts</span>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a href="/categories" class="nav-link">
+            <div class="nav-icon"><i class="fas fa-tags"></i></div>
+            <span>Categories</span>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a href="/reports" class="nav-link">
+            <div class="nav-icon"><i class="fas fa-chart-pie"></i></div>
+            <span>Reports</span>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a href="/settings" class="nav-link">
+            <div class="nav-icon"><i class="fas fa-cog"></i></div>
+            <span>Settings</span>
+          </a>
+        </li>
+      </ul>
+    </div>
+
+    <!-- Sidebar Footer -->
+    <div class="sidebar-footer">
+      <a href="/help" class="support-link">
+        <i class="fas fa-question-circle"></i>
+        <span>Help & Support</span>
+      </a>
+    </div>
+  </div>
+
+  <!-- CSS for Modern Sidebar -->
+  <style>
+    .modern-sidebar {
+      display: flex;
+      flex-direction: column;
+      background: #ffffff;
+      height: 100vh;
+      width: 250px;
+      box-shadow: 0 0 20px rgba(0, 0, 0, 0.05);
+      transition: all 0.3s ease;
+      overflow-y: auto;
+      scrollbar-width: thin;
+      scrollbar-color: #ddd #fff;
+      padding-top: 20px; /* Added padding to account for removed header */
+    }
+
+    .modern-sidebar::-webkit-scrollbar {
+      width: 4px;
+    }
+
+    .modern-sidebar::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    .modern-sidebar::-webkit-scrollbar-thumb {
+      background-color: #ddd;
+      border-radius: 10px;
+    }
+
+    .sidebar-user {
+      padding: 15px;
+      margin: 0 15px 20px;
+      background: #f8f9fa;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+    }
+
+    .user-avatar {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #6c63ff 0%, #8f88ff 100%);
+      color: white;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-weight: 600;
+      font-size: 1.2rem;
+      margin-right: 12px;
+    }
+
+    .user-info {
+      flex: 1;
+    }
+
+    .user-name {
+      font-weight: 600;
+      font-size: 0.9rem;
+      color: #333;
+      margin-bottom: 2px;
+    }
+
+    .user-role {
+      font-size: 0.75rem;
+      color: #6c757d;
+    }
+
+    .sidebar-menu {
+      flex: 1;
+      padding: 0 15px;
+    }
+
+    .nav-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+
+    .nav-item {
+      margin-bottom: 5px;
+    }
+
+    .nav-link {
+      display: flex;
+      align-items: center;
+      padding: 12px 15px;
+      border-radius: 10px;
+      color: #495057;
+      text-decoration: none;
+      transition: all 0.2s ease;
+    }
+
+    .nav-link:hover {
+      background-color: rgba(108, 99, 255, 0.08);
+      color: #6c63ff;
+    }
+
+    .nav-link.active {
+      background-color: rgba(108, 99, 255, 0.12);
+      color: #6c63ff;
+      font-weight: 500;
+    }
+
+    .nav-icon {
+      width: 24px;
+      height: 24px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin-right: 12px;
+      font-size: 1.1rem;
+      color: inherit;
+    }
+
+    .sidebar-footer {
+      padding: 20px 15px;
+      margin-top: auto;
+      border-top: 1px solid #f0f0f0;
+    }
+
+    .support-link {
+      display: flex;
+      align-items: center;
+      color: #6c757d;
+      text-decoration: none;
+      padding: 10px;
+      border-radius: 8px;
+      transition: all 0.2s ease;
+    }
+
+    .support-link:hover {
+      background-color: #f8f9fa;
+      color: #6c63ff;
+    }
+
+    .support-link i {
+      margin-right: 10px;
+    }
+
+    /* Responsive adjustments */
+    @media (max-width: 767.98px) {
+      .modern-sidebar {
+        width: 100%;
+        height: auto;
+        min-height: auto;
+        box-shadow: none;
+      }
+    }
+  </style>
+</div>

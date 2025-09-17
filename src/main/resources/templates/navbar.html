@@ -1,0 +1,192 @@
+<!-- Navbar Fragment -->
+<div th:fragment="navbar">
+  <nav class="navbar navbar-light bg-white shadow-sm py-2 px-3" style="border-radius: 1rem;">
+    <div class="container-fluid">
+      <!-- Brand/logo on the left -->
+      <a class="navbar-brand fw-semibold" href="/dashboard">
+        <i class="fas fa-wallet me-2" style="color:#6c63ff;"></i>Spendee
+      </a>
+
+      <!-- User info and dropdown on the right -->
+      <div class="dropdown">
+        <div class="d-flex align-items-center" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+          <div class="text-end me-3 d-none d-sm-block">
+            <div class="fw-semibold" style="font-size:1.1rem;" th:text="${userFullName}">User Name</div>
+            <div id="user-email" class="text-muted" style="font-size:0.8rem;" th:text="${userEmail}">user@email.com</div>
+          </div>
+          <div class="rounded-circle bg-light d-flex align-items-center justify-content-center" style="width:42px;height:42px;box-shadow:0 2px 8px rgba(0,0,0,0.08);">
+            <i class="fas fa-user" style="font-size:1.2rem;color:#6c63ff;"></i>
+          </div>
+        </div>
+        <ul class="dropdown-menu dropdown-menu-end" style="box-shadow:0 4px 12px rgba(0,0,0,0.1);">
+          <li><a class="dropdown-item" href="#" id="profile-modal-link"><i class="fas fa-user-circle me-2"></i>Profile</a></li>
+          <li><a class="dropdown-item" href="/settings"><i class="fas fa-cog me-2"></i>Settings</a></li>
+          <li><hr class="dropdown-divider"></li>
+          <li><a class="dropdown-item" href="#" id="logout-button"><i class="fas fa-sign-out-alt me-2"></i>Logout</a></li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Pure HTML/CSS Profile Modal -->
+  <div id="profileModal" class="custom-modal">
+    <div class="custom-modal-content">
+      <span class="custom-modal-close" id="closeProfileModal">&times;</span>
+      <h5>Edit Profile</h5>
+      <form id="profile-form" enctype="multipart/form-data">
+        <div class="mb-3 text-center">
+          <img id="profile-photo-preview" src="/api/user/photo" alt="Profile Photo" class="rounded-circle" style="width:80px;height:80px;object-fit:cover;">
+        </div>
+        <div class="mb-3">
+          <label for="profileFullName" class="form-label">Full Name</label>
+          <input type="text" class="form-control" id="profileFullName" name="fullName" required>
+        </div>
+        <div class="mb-3">
+          <label for="profileEmail" class="form-label">Email</label>
+          <input type="email" class="form-control" id="profileEmail" name="email" required>
+        </div>
+        <div class="mb-3">
+          <label for="profilePhoto" class="form-label">Profile Photo</label>
+          <input type="file" class="form-control" id="profilePhoto" name="photo" accept="image/*">
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" id="cancelProfileModal">Cancel</button>
+          <button type="submit" class="btn btn-primary">Save Changes</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <style>
+    .custom-modal {
+      display: none;
+      position: fixed;
+      z-index: 9999;
+      left: 0;
+      top: 0;
+      width: 100vw;
+      height: 100vh;
+      overflow: auto;
+      background-color: rgba(0,0,0,0.4);
+    }
+    .custom-modal-content {
+      background-color: #fff;
+      margin: 5% auto;
+      padding: 20px 30px;
+      border-radius: 12px;
+      width: 100%;
+      max-width: 400px;
+      position: relative;
+      box-shadow: 0 8px 30px rgba(0,0,0,0.12);
+    }
+    .custom-modal-close {
+      position: absolute;
+      top: 10px;
+      right: 18px;
+      font-size: 2rem;
+      color: #888;
+      cursor: pointer;
+    }
+    .custom-modal-close:hover {
+      color: #333;
+    }
+  </style>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      // Handle logout
+      document.getElementById('logout-button')?.addEventListener('click', function(e) {
+          e.preventDefault();
+
+          // Clear local storage
+          localStorage.removeItem('jwt_token');
+          localStorage.removeItem('user_email');
+          localStorage.removeItem('user_roles');
+
+          // Clear JWT cookie
+          document.cookie = "jwt_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+
+          // Redirect to login page
+          window.location.href = '/auth/login?logout=true';
+      });
+
+      // Open profile modal
+      document.getElementById('profile-modal-link')?.addEventListener('click', function(e) {
+        e.preventDefault();
+        // Fetch user info and photo
+        fetch('/api/user/me', { headers: { 'Authorization': 'Bearer ' + localStorage.getItem('jwt_token') } })
+          .then(res => res.json())
+          .then(data => {
+            document.getElementById('profileFullName').value = data.fullName || '';
+            document.getElementById('profileEmail').value = data.email || '';
+            document.getElementById('profile-photo-preview').src = data.photoUrl || '/api/user/photo';
+            document.getElementById('profileModal').style.display = 'block';
+          });
+      });
+
+      // Close modal
+      document.getElementById('closeProfileModal').onclick = function() {
+        document.getElementById('profileModal').style.display = 'none';
+      };
+      document.getElementById('cancelProfileModal').onclick = function() {
+        document.getElementById('profileModal').style.display = 'none';
+      };
+      window.onclick = function(event) {
+        if (event.target === document.getElementById('profileModal')) {
+          document.getElementById('profileModal').style.display = 'none';
+        }
+      };
+
+      // Preview photo on file select
+      document.getElementById('profilePhoto')?.addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (file) {
+          const reader = new FileReader();
+          reader.onload = function(ev) {
+            document.getElementById('profile-photo-preview').src = ev.target.result;
+          };
+          reader.readAsDataURL(file);
+        }
+      });
+
+      // Handle profile form submit
+      document.getElementById('profile-form')?.addEventListener('submit', function(e) {
+        e.preventDefault();
+        const formData = new FormData(this);
+        fetch('/api/user/update', {
+          method: 'POST',
+          headers: { 'Authorization': 'Bearer ' + localStorage.getItem('jwt_token') },
+          body: formData
+        })
+        .then(res => res.json())
+        .then(data => {
+          if (data.success) {
+            // Close the modal
+            document.getElementById('profileModal').style.display = 'none';
+
+            // Show success toast notification instead of alert
+            if (typeof notify !== 'undefined') {
+              notify.success('Profile updated successfully!');
+            }
+
+            // Reload the page after a short delay to allow the toast to be seen
+            setTimeout(() => {
+              window.location.reload();
+            }, 1500);
+          } else {
+            // Show error toast notification instead of alert
+            if (typeof notify !== 'undefined') {
+              notify.error('Error updating profile: ' + (data.message || 'Unknown error'));
+            }
+          }
+        })
+        .catch(error => {
+          // Show error toast for network/other errors
+          if (typeof notify !== 'undefined') {
+            notify.error('Failed to update profile: Network error');
+          }
+        });
+      });
+    });
+  </script>
+</div>

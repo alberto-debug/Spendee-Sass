@@ -1,0 +1,36 @@
+/* Login and Registration Styles */
+body {
+    background-color: #f8f9fa;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.login-container {
+    max-width: 400px;
+    margin: 100px auto;
+    padding: 20px;
+    background-color: white;
+    border-radius: 10px;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+}
+
+.btn-google {
+    background-color: #4285F4;
+    color: white;
+}
+
+.divider {
+    display: flex;
+    align-items: center;
+    margin: 20px 0;
+}
+
+.divider::before, .divider::after {
+    content: "";
+    flex: 1;
+    border-bottom: 1px solid #ced4da;
+}
+
+.divider span {
+    padding: 0 10px;
+    color: #6c757d;
+}

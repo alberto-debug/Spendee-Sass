@@ -102,6 +102,39 @@ public class CategoryService {
     }
     
     /**
+     * Delete multiple categories at once
+     */
+    @Transactional
+    public void deleteCategories(List<Long> categoryIds, String userEmail) {
+        User user = userRepository.findByEmail(userEmail)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        // Get the General category to move transactions to
+        Category generalCategory = getOrCreateGeneralCategory(userEmail);
+
+        for (Long categoryId : categoryIds) {
+            try {
+                Category category = categoryRepository.findByIdAndUser(categoryId, user)
+                    .orElseThrow(() -> new RuntimeException("Category not found or not owned by user"));
+
+                // Skip default categories
+                if (category.isDefault()) {
+                    continue;
+                }
+
+                // Move transactions to the General category
+                category.getTransactions().forEach(transaction -> transaction.setCategory(generalCategory));
+
+                // Delete the category
+                categoryRepository.delete(category);
+            } catch (Exception e) {
+                // Log error but continue with other categories
+                System.err.println("Error deleting category ID " + categoryId + ": " + e.getMessage());
+            }
+        }
+    }
+
+    /**
      * Get or create the General category
      */
     @Transactional
@@ -132,6 +165,31 @@ public class CategoryService {
         generalCategory.setDefault(true);
         generalCategory.setUser(null); // System-wide default category
         
+        return categoryRepository.save(generalCategory);
+    }
+
+    /**
+     * Get or create the General category for a user
+     */
+    private Category getOrCreateGeneralCategory(String userEmail) {
+        User user = userRepository.findByEmail(userEmail)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        Optional<Category> generalCategoryOpt = categoryRepository.findByNameAndUser("General", user);
+
+        if (generalCategoryOpt.isPresent()) {
+            return generalCategoryOpt.get();
+        }
+
+        // Create General category if it doesn't exist
+        Category generalCategory = new Category();
+        generalCategory.setName("General");
+        generalCategory.setDescription("Default category for uncategorized transactions");
+        generalCategory.setColor("#808080");
+        generalCategory.setIcon("fa-folder");
+        generalCategory.setUser(user);
+        generalCategory.setDefault(true);
+
         return categoryRepository.save(generalCategory);
     }
 }

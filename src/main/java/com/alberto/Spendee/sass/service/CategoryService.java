@@ -26,22 +26,22 @@ public class CategoryService {
     public List<Category> getCategoriesByUser(String userEmail) {
         User user = userRepository.findByEmail(userEmail)
                 .orElseThrow(() -> new RuntimeException("User not found"));
-        
+
         // Get user-specific categories plus default system categories
         return categoryRepository.findByUserOrIsDefaultTrue(user);
     }
-    
+
     /**
      * Get a category by ID, ensuring it belongs to the user or is a default category
      */
     public Category getCategoryById(Long categoryId, String userEmail) {
         User user = userRepository.findByEmail(userEmail)
                 .orElseThrow(() -> new RuntimeException("User not found"));
-        
+
         return categoryRepository.findByIdAndUserOrIsDefaultTrue(categoryId, user)
                 .orElseThrow(() -> new RuntimeException("Category not found"));
     }
-    
+
     /**
      * Create a new category for a user
      */
@@ -49,11 +49,11 @@ public class CategoryService {
     public Category createCategory(Category category, String userEmail) {
         User user = userRepository.findByEmail(userEmail)
                 .orElseThrow(() -> new RuntimeException("User not found"));
-        
+
         category.setUser(user);
         return categoryRepository.save(category);
     }
-    
+
     /**
      * Update an existing category
      */
@@ -61,23 +61,23 @@ public class CategoryService {
     public Category updateCategory(Long categoryId, Category updatedCategory, String userEmail) {
         User user = userRepository.findByEmail(userEmail)
                 .orElseThrow(() -> new RuntimeException("User not found"));
-        
+
         Category existingCategory = categoryRepository.findByIdAndUser(categoryId, user)
                 .orElseThrow(() -> new RuntimeException("Category not found or not owned by user"));
-        
+
         // Cannot update default categories
         if (existingCategory.isDefault()) {
             throw new RuntimeException("Default categories cannot be modified");
         }
-        
+
         existingCategory.setName(updatedCategory.getName());
         existingCategory.setDescription(updatedCategory.getDescription());
         existingCategory.setColor(updatedCategory.getColor());
         existingCategory.setIcon(updatedCategory.getIcon());
-        
+
         return categoryRepository.save(existingCategory);
     }
-    
+
     /**
      * Delete a category
      */
@@ -85,22 +85,22 @@ public class CategoryService {
     public void deleteCategory(Long categoryId, String userEmail) {
         User user = userRepository.findByEmail(userEmail)
                 .orElseThrow(() -> new RuntimeException("User not found"));
-        
+
         Category category = categoryRepository.findByIdAndUser(categoryId, user)
                 .orElseThrow(() -> new RuntimeException("Category not found or not owned by user"));
-        
+
         // Cannot delete default categories
         if (category.isDefault()) {
             throw new RuntimeException("Default categories cannot be deleted");
         }
-        
-        // TODO: Move transactions in this category to the default General category
-        Category generalCategory = getOrCreateGeneralCategory(userEmail);
+
+        // Move transactions in this category to the default General category
+        Category generalCategory = findOrCreateGeneralCategory(userEmail);
         category.getTransactions().forEach(transaction -> transaction.setCategory(generalCategory));
-        
+
         categoryRepository.delete(category);
     }
-    
+
     /**
      * Delete multiple categories at once
      */
@@ -110,7 +110,7 @@ public class CategoryService {
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
         // Get the General category to move transactions to
-        Category generalCategory = getOrCreateGeneralCategory(userEmail);
+        Category generalCategory = findOrCreateGeneralCategory(userEmail);
 
         for (Long categoryId : categoryIds) {
             try {
@@ -135,53 +135,29 @@ public class CategoryService {
     }
 
     /**
-     * Get or create the General category
+     * Find or create the General category for a user
+     * First tries to find an existing General category for the user,
+     * then looks for a system-wide General category,
+     * and finally creates a new one if neither exists.
      */
     @Transactional
-    public Category getOrCreateGeneralCategory(String userEmail) {
+    public Category findOrCreateGeneralCategory(String userEmail) {
         User user = userRepository.findByEmail(userEmail)
                 .orElseThrow(() -> new RuntimeException("User not found"));
-        
-        // First try to find a system-wide General category
-        Optional<Category> defaultCategory = categoryRepository.findByNameAndIsDefaultTrue("General");
-        
-        if (defaultCategory.isPresent()) {
-            return defaultCategory.get();
-        }
-        
-        // If not found, check if user has their own General category
+
+        // First check if user has their own General category
         Optional<Category> userGeneralCategory = categoryRepository.findByNameAndUser("General", user);
-        
         if (userGeneralCategory.isPresent()) {
             return userGeneralCategory.get();
         }
-        
-        // If no General category exists, create a default one
-        Category generalCategory = new Category();
-        generalCategory.setName("General");
-        generalCategory.setDescription("Default general category");
-        generalCategory.setColor("#6c63ff");
-        generalCategory.setIcon("fa-folder");
-        generalCategory.setDefault(true);
-        generalCategory.setUser(null); // System-wide default category
-        
-        return categoryRepository.save(generalCategory);
-    }
 
-    /**
-     * Get or create the General category for a user
-     */
-    private Category getOrCreateGeneralCategory(String userEmail) {
-        User user = userRepository.findByEmail(userEmail)
-                .orElseThrow(() -> new RuntimeException("User not found"));
-
-        Optional<Category> generalCategoryOpt = categoryRepository.findByNameAndUser("General", user);
-
-        if (generalCategoryOpt.isPresent()) {
-            return generalCategoryOpt.get();
+        // Then try to find a system-wide General category
+        Optional<Category> defaultCategory = categoryRepository.findByNameAndIsDefaultTrue("General");
+        if (defaultCategory.isPresent()) {
+            return defaultCategory.get();
         }
 
-        // Create General category if it doesn't exist
+        // If no General category exists, create a default one for this user
         Category generalCategory = new Category();
         generalCategory.setName("General");
         generalCategory.setDescription("Default category for uncategorized transactions");

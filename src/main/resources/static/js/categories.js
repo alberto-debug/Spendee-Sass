@@ -162,20 +162,15 @@ document.addEventListener('DOMContentLoaded', () => {
                 document.getElementById('editCategoryColor').value = category.color;
                 document.getElementById('editCategoryIcon').value = category.icon;
 
-            // Add event listener to the checkbox after it's added to the DOM
-            const checkbox = categoryCard.querySelector('.categoryCheckbox');
-            if (checkbox && !isDefault) {
-                checkbox.addEventListener('change', function() {
-                    if (this.checked) {
-                        selectedCategories.add(this.value);
-                    } else {
-                        selectedCategories.delete(this.value);
-                    }
-                    updateSelectedCount();
-                    toggleDeleteSelectedButton();
-                });
-            }
+                editColorPreview.style.backgroundColor = category.color;
 
+                // Show the edit modal
+                editCategoryModal.show();
+            })
+            .catch(error => {
+                toast.error('Error loading category: ' + error.message);
+                console.error('Error fetching category:', error);
+            });
     }
 
     /**
@@ -187,15 +182,6 @@ document.addEventListener('DOMContentLoaded', () => {
         } else {
             deleteSelectedBtn.classList.add('d-none');
         }
-                editColorPreview.style.backgroundColor = category.color;
-
-                // Show the edit modal
-                editCategoryModal.show();
-            })
-            .catch(error => {
-                toast.error('Error loading category: ' + error.message);
-                console.error('Error fetching category:', error);
-            });
     }
 
     /**

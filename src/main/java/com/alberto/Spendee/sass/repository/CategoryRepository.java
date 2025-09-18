@@ -13,4 +13,7 @@ public interface CategoryRepository extends JpaRepository<Category, Long> {
     List<Category> findByUser(User user);
     List<Category> findByUserOrIsDefaultTrue(User user);
     Optional<Category> findByNameAndUser(String name, User user);
+    Optional<Category> findByIdAndUser(Long id, User user);
+    Optional<Category> findByIdAndUserOrIsDefaultTrue(Long id, User user);
+    Optional<Category> findByNameAndIsDefaultTrue(String name);
 }

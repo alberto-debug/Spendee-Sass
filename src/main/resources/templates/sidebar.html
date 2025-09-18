@@ -54,14 +54,6 @@
         </li>
       </ul>
     </div>
-
-    <!-- Sidebar Footer -->
-    <div class="sidebar-footer">
-      <a href="/help" class="support-link">
-        <i class="fas fa-question-circle"></i>
-        <span>Help & Support</span>
-      </a>
-    </div>
   </div>
 
   <!-- CSS for Modern Sidebar -->
@@ -70,27 +62,17 @@
       display: flex;
       flex-direction: column;
       background: #ffffff;
-      height: 100vh;
-      width: 250px;
+      height: 100vh; /* Full viewport height */
+      width: 250px; /* Fixed width instead of 100% */
       box-shadow: 0 0 20px rgba(0, 0, 0, 0.05);
       transition: all 0.3s ease;
-      overflow-y: auto;
-      scrollbar-width: thin;
-      scrollbar-color: #ddd #fff;
-      padding-top: 20px; /* Added padding to account for removed header */
-    }
-
-    .modern-sidebar::-webkit-scrollbar {
-      width: 4px;
-    }
-
-    .modern-sidebar::-webkit-scrollbar-track {
-      background: transparent;
-    }
-
-    .modern-sidebar::-webkit-scrollbar-thumb {
-      background-color: #ddd;
-      border-radius: 10px;
+      overflow: hidden; /* Prevent scrolling */
+      padding-top: 20px;
+      position: fixed; /* Fixed position */
+      left: 0;
+      top: 56px; /* Navbar height */
+      bottom: 0;
+      border-right: 1px solid #dee2e6; /* Gray line separator */
     }
 
     .sidebar-user {
@@ -179,30 +161,7 @@
       color: inherit;
     }
 
-    .sidebar-footer {
-      padding: 20px 15px;
-      margin-top: auto;
-      border-top: 1px solid #f0f0f0;
-    }
-
-    .support-link {
-      display: flex;
-      align-items: center;
-      color: #6c757d;
-      text-decoration: none;
-      padding: 10px;
-      border-radius: 8px;
-      transition: all 0.2s ease;
-    }
-
-    .support-link:hover {
-      background-color: #f8f9fa;
-      color: #6c63ff;
-    }
-
-    .support-link i {
-      margin-right: 10px;
-    }
+    /* Removed sidebar-footer and support-link styles */
 
     /* Responsive adjustments */
     @media (max-width: 767.98px) {

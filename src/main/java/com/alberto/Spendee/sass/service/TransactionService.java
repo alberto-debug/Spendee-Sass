@@ -30,6 +30,9 @@ public class TransactionService {
     @Autowired
     private UserRepository userRepository;
     
+    @Autowired
+    private CategoryService categoryService;
+
     /**
      * Get dashboard summary data for a user
      */
@@ -84,18 +87,26 @@ public class TransactionService {
     public TransactionDto createTransaction(TransactionDto transactionDto, String userEmail) {
         User user = userRepository.findByEmail(userEmail)
                 .orElseThrow(() -> new RuntimeException("User not found"));
-                
-        Category category = categoryRepository.findById(transactionDto.getCategoryId())
-                .orElseThrow(() -> new RuntimeException("Category not found"));
-                
+
+        // Create transaction without requiring a category
         Transaction transaction = new Transaction();
         transaction.setUser(user);
-        transaction.setCategory(category);
         transaction.setDate(transactionDto.getDate());
         transaction.setAmount(transactionDto.getAmount());
         transaction.setDescription(transactionDto.getDescription());
         transaction.setType(transactionDto.getType());
         
+        // Only set category if it exists
+        if (transactionDto.getCategoryId() != null) {
+            try {
+                Category category = categoryRepository.findById(transactionDto.getCategoryId())
+                    .orElse(null);
+                transaction.setCategory(category);
+            } catch (Exception e) {
+                // Ignore category errors - category is optional
+            }
+        }
+
         Transaction savedTransaction = transactionRepository.save(transaction);
         
         return convertToDto(savedTransaction);
@@ -119,10 +130,18 @@ public class TransactionService {
      * Convert Transaction entity to TransactionDto
      */
     private TransactionDto convertToDto(Transaction transaction) {
+        Long categoryId = null;
+        String categoryName = "Uncategorized";
+
+        if (transaction.getCategory() != null) {
+            categoryId = transaction.getCategory().getId();
+            categoryName = transaction.getCategory().getName();
+        }
+
         return new TransactionDto(
                 transaction.getId(),
-                transaction.getCategory().getId(),
-                transaction.getCategory().getName(),
+                categoryId,
+                categoryName,
                 transaction.getDate(),
                 transaction.getAmount(),
                 transaction.getDescription(),

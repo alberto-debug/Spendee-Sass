@@ -2,6 +2,7 @@ package com.alberto.Spendee.sass.domain.transaction;
 
 import jakarta.persistence.*;
 import com.alberto.Spendee.sass.domain.user.User;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -28,9 +29,11 @@ public class Category {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
+    @JsonIgnore // Prevent serializing the user object
     private User user;
 
     @OneToMany(mappedBy = "category", cascade = CascadeType.ALL)
+    @JsonIgnore // Prevent serializing the transactions
     private Set<Transaction> transactions = new HashSet<>();
 
     // Indicates if this is a system default category

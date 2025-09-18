@@ -118,13 +118,30 @@ document.addEventListener('DOMContentLoaded', () => {
                     </div>
                     <div class="card-footer d-flex justify-content-end">
                         <button class="btn btn-sm ${isDefault ? 'btn-secondary' : 'btn-primary'}" 
+        // Reset selection if we're re-rendering
+        selectedCategories.clear();
+        updateSelectedCount();
+        
+        // Show selection controls if there are categories
+        if (categories.length > 0) {
+            selectionControls.classList.remove('d-none');
+        } else {
+            selectionControls.classList.add('d-none');
+        }
+
                                 onclick="editCategory(${category.id})"
                                 ${isDefault ? 'disabled' : ''}>
                             <i class="fas fa-edit"></i> ${isDefault ? 'Default' : 'Edit'}
                         </button>
                     </div>
+            
+            // Create the card content with checkbox for selection
                 </div>
-            `;
+                <div class="card h-100 position-relative">
+                    <div class="form-check position-absolute top-0 start-0 m-2 z-index-1">
+                        <input class="form-check-input categoryCheckbox" type="checkbox" value="${category.id}" 
+                               id="category-${category.id}" ${isDefault ? 'disabled' : ''}>
+                    </div>
 
             categoriesContainer.appendChild(categoryCard);
         });
@@ -145,6 +162,31 @@ document.addEventListener('DOMContentLoaded', () => {
                 document.getElementById('editCategoryColor').value = category.color;
                 document.getElementById('editCategoryIcon').value = category.icon;
 
+            // Add event listener to the checkbox after it's added to the DOM
+            const checkbox = categoryCard.querySelector('.categoryCheckbox');
+            if (checkbox && !isDefault) {
+                checkbox.addEventListener('change', function() {
+                    if (this.checked) {
+                        selectedCategories.add(this.value);
+                    } else {
+                        selectedCategories.delete(this.value);
+                    }
+                    updateSelectedCount();
+                    toggleDeleteSelectedButton();
+                });
+            }
+
+    }
+
+    /**
+     * Toggle the Delete Selected button visibility based on selection
+     */
+    function toggleDeleteSelectedButton() {
+        if (selectedCategories.size > 0) {
+            deleteSelectedBtn.classList.remove('d-none');
+        } else {
+            deleteSelectedBtn.classList.add('d-none');
+        }
                 editColorPreview.style.backgroundColor = category.color;
 
                 // Show the edit modal

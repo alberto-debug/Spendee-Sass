@@ -9,6 +9,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/categories")
@@ -84,6 +85,27 @@ public class CategoryController {
             return ResponseEntity.noContent().build();
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().build();
+        }
+    }
+
+    /**
+     * Delete multiple categories at once
+     */
+    @DeleteMapping
+    public ResponseEntity<?> bulkDeleteCategories(@RequestBody Map<String, List<Long>> requestBody, Authentication authentication) {
+        try {
+            List<Long> categoryIds = requestBody.get("ids");
+            if (categoryIds == null || categoryIds.isEmpty()) {
+                return ResponseEntity.badRequest()
+                    .body(java.util.Collections.singletonMap("error", "No category IDs provided"));
+            }
+
+            String userEmail = authentication.getName();
+            categoryService.deleteCategories(categoryIds, userEmail);
+            return ResponseEntity.noContent().build();
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(java.util.Collections.singletonMap("error", e.getMessage()));
         }
     }
 }

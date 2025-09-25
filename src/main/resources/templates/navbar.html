@@ -23,8 +23,6 @@
             style="background: rgba(25, 25, 25, 0.95); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.05); box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);">
           <li><a class="dropdown-item text-light" href="#" id="profile-modal-link"><i class="fas fa-user-circle me-2 text-primary"></i>Profile</a></li>
           <li><a class="dropdown-item text-light" href="/settings"><i class="fas fa-cog me-2 text-primary"></i>Settings</a></li>
-          <li><hr class="dropdown-divider" style="border-color: rgba(255, 255, 255, 0.1);"></li>
-          <li><a class="dropdown-item text-light" href="#" id="logout-button"><i class="fas fa-sign-out-alt me-2 text-primary"></i>Logout</a></li>
         </ul>
       </div>
     </div>
@@ -150,22 +148,6 @@
 
   <script>
     document.addEventListener('DOMContentLoaded', function() {
-      // Handle logout
-      document.getElementById('logout-button')?.addEventListener('click', function(e) {
-          e.preventDefault();
-
-          // Clear local storage
-          localStorage.removeItem('jwt_token');
-          localStorage.removeItem('user_email');
-          localStorage.removeItem('user_roles');
-
-          // Clear JWT cookie
-          document.cookie = "jwt_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-
-          // Redirect to login page
-          window.location.href = '/auth/login?logout=true';
-      });
-
       // Open profile modal
       document.getElementById('profile-modal-link')?.addEventListener('click', function(e) {
         e.preventDefault();

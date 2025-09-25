@@ -103,6 +103,7 @@ public class HomeController {
         // Add attributes to model for display in view
         model.addAttribute("userFullName", firstName + " " + lastName);
         model.addAttribute("userEmail", userEmail);
+        model.addAttribute("activePage", "transactions"); // Set active page for sidebar highlighting
 
         // Add userPhotoUrl if photo exists
         User user = userRepository.findByEmail(userEmail).orElse(null);

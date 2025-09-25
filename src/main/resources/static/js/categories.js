@@ -37,6 +37,15 @@ document.addEventListener('DOMContentLoaded', () => {
     // Selected categories for bulk deletion
     let selectedCategories = new Set();
 
+    // Toast utility function
+    function showToast(message, type = 'info') {
+        if (typeof toast !== 'undefined') {
+            toast[type](message);
+        } else {
+            console.log(`Toast ${type}: ${message}`);
+        }
+    }
+
     // Initialize page
     init();
 
@@ -50,13 +59,15 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // Initialize color preview on page load
-    colorPreview.style.backgroundColor = categoryColor.value;
+    if (colorPreview) {
+        colorPreview.style.backgroundColor = categoryColor ? categoryColor.value : '#6c63ff';
+    }
 
     // Add event listeners
-    document.getElementById('saveCategory').addEventListener('click', saveCategory);
-    document.getElementById('updateCategory').addEventListener('click', updateCategory);
-    document.getElementById('deleteCategory').addEventListener('click', confirmDeleteCategory);
-    document.getElementById('confirmDelete').addEventListener('click', deleteCategory);
+    document.getElementById('saveCategory')?.addEventListener('click', saveCategory);
+    document.getElementById('updateCategory')?.addEventListener('click', updateCategory);
+    document.getElementById('deleteCategory')?.addEventListener('click', confirmDeleteCategory);
+    document.getElementById('confirmDelete')?.addEventListener('click', deleteCategory);
 
     // Bulk deletion event listeners
     if (deleteSelectedBtn) {
@@ -109,7 +120,7 @@ document.addEventListener('DOMContentLoaded', () => {
             .catch(error => {
                 loadingIndicator.classList.add('d-none');
                 noCategoriesMessage.classList.remove('d-none');
-                toast.error('Error loading categories: ' + error.message);
+                showToast('Error loading categories: ' + error.message, 'error');
                 console.error('Error fetching categories:', error);
             });
     }
@@ -137,55 +148,32 @@ document.addEventListener('DOMContentLoaded', () => {
             selectionControls.classList.add('d-none');
         }
 
-        // Add each category as a card
+        // Add each category as a modern card
         categories.forEach(category => {
             const isDefault = category.default === true;
             const categoryCard = document.createElement('div');
-            categoryCard.className = 'col-md-4 col-lg-3 mb-4';
+            categoryCard.className = 'category-card';
 
-            // Create the card content with checkbox for selection
+            // Create the modern card content
             categoryCard.innerHTML = `
-                <div class="card h-100 position-relative">
-                    ${selectionControls ? `
-                    <div class="form-check position-absolute top-0 start-0 m-2 z-index-1">
-                        <input class="form-check-input categoryCheckbox" type="checkbox" value="${category.id}" 
-                               id="category-${category.id}" ${isDefault ? 'disabled' : ''}>
-                    </div>` : ''}
-                    <div class="card-header d-flex align-items-center" style="background-color: ${category.color};">
-                        <i class="fas ${category.icon} me-2"></i>
-                        <h5 class="card-title mb-0">${category.name}</h5>
-                    </div>
-                    <div class="card-body">
-                        <p class="card-text">${category.description || 'No description'}</p>
-                        ${isDefault ? '<div class="badge bg-info mb-2">Default</div>' : ''}
-                    </div>
-                    <div class="card-footer d-flex justify-content-end">
-                        <button class="btn btn-sm ${isDefault ? 'btn-secondary' : 'btn-primary'}" 
-                                onclick="editCategory(${category.id})"
-                                ${isDefault ? 'disabled' : ''}>
-                            <i class="fas fa-edit"></i> ${isDefault ? 'Default' : 'Edit'}
-                        </button>
-                    </div>
+                <i class="fas ${category.icon} category-icon" style="color: ${category.color};"></i>
+                <div class="category-title">${category.name}</div>
+                <div class="category-description">${category.description || 'No description provided'}</div>
+                <div class="category-meta">
+                    <div class="category-color" style="background-color: ${category.color};"></div>
+                    ${isDefault ? '<span class="badge" style="background: rgba(0, 123, 255, 0.15); color: #007bff; font-size: 0.75rem; padding: 0.25rem 0.5rem; border-radius: 0.5rem;">Default</span>' : ''}
+                </div>
+                <div class="category-actions">
+                    <button class="btn btn-edit" onclick="editCategory(${category.id})" ${isDefault ? 'disabled style="opacity: 0.5; cursor: not-allowed;"' : ''}>
+                        <i class="fas fa-edit"></i>
+                    </button>
+                    ${!isDefault ? `<button class="btn btn-delete" onclick="confirmDeleteCategory(${category.id})">
+                        <i class="fas fa-trash"></i>
+                    </button>` : ''}
                 </div>
             `;
 
             categoriesContainer.appendChild(categoryCard);
-
-            // Add event listener to the checkbox after it's added to the DOM
-            if (selectionControls) {
-                const checkbox = categoryCard.querySelector('.categoryCheckbox');
-                if (checkbox && !isDefault) {
-                    checkbox.addEventListener('change', function() {
-                        if (this.checked) {
-                            selectedCategories.add(this.value);
-                        } else {
-                            selectedCategories.delete(this.value);
-                        }
-                        updateSelectedCount();
-                        toggleDeleteSelectedButton();
-                    });
-                }
-            }
         });
     }
 
@@ -242,7 +230,7 @@ document.addEventListener('DOMContentLoaded', () => {
      */
     function showBulkDeleteConfirmation() {
         if (selectedCategories.size === 0) {
-            toast.warning('No categories selected for deletion');
+            showToast('No categories selected for deletion', 'warning');
             return;
         }
 
@@ -262,7 +250,7 @@ document.addEventListener('DOMContentLoaded', () => {
      */
     function bulkDeleteCategories() {
         if (selectedCategories.size === 0) {
-            toast.warning('No categories selected for deletion');
+            showToast('No categories selected for deletion', 'warning');
             if (bulkDeleteModal) bulkDeleteModal.hide();
             return;
         }
@@ -286,7 +274,7 @@ document.addEventListener('DOMContentLoaded', () => {
             return null;
         })
         .then(() => {
-            toast.success('Selected categories deleted successfully');
+            showToast('Selected categories deleted successfully', 'success');
             fetchCategories(); // Refresh the list
             if (bulkDeleteModal) bulkDeleteModal.hide();
             selectedCategories.clear();
@@ -295,7 +283,7 @@ document.addEventListener('DOMContentLoaded', () => {
             toggleDeleteSelectedButton();
         })
         .catch(error => {
-            toast.error('Error deleting categories: ' + error.message);
+            showToast('Error deleting categories: ' + error.message, 'error');
             console.error('Error deleting categories:', error);
             if (bulkDeleteModal) bulkDeleteModal.hide();
         });
@@ -316,13 +304,17 @@ document.addEventListener('DOMContentLoaded', () => {
                 document.getElementById('editCategoryColor').value = category.color;
                 document.getElementById('editCategoryIcon').value = category.icon;
 
-                editColorPreview.style.backgroundColor = category.color;
+                if (editColorPreview) {
+                    editColorPreview.style.backgroundColor = category.color;
+                }
 
                 // Show the edit modal
-                editCategoryModal.show();
+                if (editCategoryModal) {
+                    editCategoryModal.show();
+                }
             })
             .catch(error => {
-                toast.error('Error loading category: ' + error.message);
+                showToast('Error loading category: ' + error.message, 'error');
                 console.error('Error fetching category:', error);
             });
     }
@@ -337,7 +329,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const icon = document.getElementById('categoryIcon').value;
 
         if (!name) {
-            toast.warning('Please enter a category name');
+            showToast('Please enter a category name', 'warning');
             return;
         }
 
@@ -357,12 +349,14 @@ document.addEventListener('DOMContentLoaded', () => {
         })
         .then(handleResponse)
         .then(newCategory => {
-            toast.success('Category created successfully');
+            showToast('Category created successfully', 'success');
             fetchCategories(); // Refresh the list
-            addCategoryModal.hide();
+            if (addCategoryModal) {
+                addCategoryModal.hide();
+            }
         })
         .catch(error => {
-            toast.error('Error creating category: ' + error.message);
+            showToast('Error creating category: ' + error.message, 'error');
             console.error('Error creating category:', error);
         });
     }
@@ -378,7 +372,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const icon = document.getElementById('editCategoryIcon').value;
 
         if (!name) {
-            toast.warning('Please enter a category name');
+            showToast('Please enter a category name', 'warning');
             return;
         }
 
@@ -398,12 +392,14 @@ document.addEventListener('DOMContentLoaded', () => {
         })
         .then(handleResponse)
         .then(updatedCategory => {
-            toast.success('Category updated successfully');
+            showToast('Category updated successfully', 'success');
             fetchCategories(); // Refresh the list
-            editCategoryModal.hide();
+            if (editCategoryModal) {
+                editCategoryModal.hide();
+            }
         })
         .catch(error => {
-            toast.error('Error updating category: ' + error.message);
+            showToast('Error updating category: ' + error.message, 'error');
             console.error('Error updating category:', error);
         });
     }
@@ -411,9 +407,16 @@ document.addEventListener('DOMContentLoaded', () => {
     /**
      * Show confirmation modal for category deletion
      */
-    function confirmDeleteCategory() {
-        editCategoryModal.hide();
-        confirmationModal.show();
+    function confirmDeleteCategory(categoryId = null) {
+        if (categoryId) {
+            currentCategoryId = categoryId;
+        }
+        if (editCategoryModal && editCategoryModal._isShown) {
+            editCategoryModal.hide();
+        }
+        if (confirmationModal) {
+            confirmationModal.show();
+        }
     }
 
     /**
@@ -421,8 +424,10 @@ document.addEventListener('DOMContentLoaded', () => {
      */
     function deleteCategory() {
         if (!currentCategoryId) {
-            toast.error('No category selected for deletion');
-            confirmationModal.hide();
+            showToast('No category selected for deletion', 'error');
+            if (confirmationModal) {
+                confirmationModal.hide();
+            }
             return;
         }
 
@@ -438,15 +443,19 @@ document.addEventListener('DOMContentLoaded', () => {
             return null;
         })
         .then(() => {
-            toast.success('Category deleted successfully');
+            showToast('Category deleted successfully', 'success');
             fetchCategories(); // Refresh the list
-            confirmationModal.hide();
+            if (confirmationModal) {
+                confirmationModal.hide();
+            }
             currentCategoryId = null;
         })
         .catch(error => {
-            toast.error('Error deleting category: ' + error.message);
+            showToast('Error deleting category: ' + error.message, 'error');
             console.error('Error deleting category:', error);
-            confirmationModal.hide();
+            if (confirmationModal) {
+                confirmationModal.hide();
+            }
         });
     }
 
@@ -462,6 +471,7 @@ document.addEventListener('DOMContentLoaded', () => {
         return response.json();
     }
 
-    // Make editCategory function globally accessible
+    // Make functions globally accessible
     window.editCategory = editCategory;
+    window.confirmDeleteCategory = confirmDeleteCategory;
 });

@@ -50,17 +50,25 @@ document.addEventListener('DOMContentLoaded', () => {
     init();
 
     // Update color preview when color input changes
-    categoryColor.addEventListener('input', () => {
-        colorPreview.style.backgroundColor = categoryColor.value;
-    });
+    if (categoryColor) {
+        categoryColor.addEventListener('input', () => {
+            if (colorPreview) {
+                colorPreview.style.backgroundColor = categoryColor.value;
+            }
+        });
+    }
 
-    editCategoryColor.addEventListener('input', () => {
-        editColorPreview.style.backgroundColor = editCategoryColor.value;
-    });
+    if (editCategoryColor) {
+        editCategoryColor.addEventListener('input', () => {
+            if (editColorPreview) {
+                editColorPreview.style.backgroundColor = editCategoryColor.value;
+            }
+        });
+    }
 
     // Initialize color preview on page load
-    if (colorPreview) {
-        colorPreview.style.backgroundColor = categoryColor ? categoryColor.value : '#6c63ff';
+    if (colorPreview && categoryColor) {
+        colorPreview.style.backgroundColor = categoryColor.value;
     }
 
     // Add event listeners

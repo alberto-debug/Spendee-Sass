@@ -1,5 +1,12 @@
 <!-- Navbar Fragment -->
 <div th:fragment="navbar">
+    <style>
+        /* Custom hover for navbar dropdown items */
+        .navbar .dropdown-menu .dropdown-item:hover {
+            background: linear-gradient(135deg, #6366F1 0%, #4338CA 100%);
+            color: #fff !important;
+        }
+    </style>
     <nav class="navbar navbar-dark py-2 px-3" style="border-radius: 1rem; background: rgba(18, 18, 18, 0.85); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.05);">
         <div class="container-fluid">
             <!-- Brand/logo on the left -->
@@ -73,6 +80,7 @@
 
         .custom-modal-close:hover {
             color: white;
+
         }
 
         .custom-modal h5 {
@@ -180,7 +188,7 @@
                 // Fetch user info and photo
                 fetch('/api/user/me', { headers: { 'Authorization': 'Bearer ' + localStorage.getItem('jwt_token') } })
                     .then(res => res.json())
-                    .then(data => {
+                    .then data => {
                         document.getElementById('profileFullName').value = data.fullName || '';
                         document.getElementById('profileEmail').value = data.email || '';
                         document.getElementById('profile-photo-preview').src = data.photoUrl || '/api/user/photo';

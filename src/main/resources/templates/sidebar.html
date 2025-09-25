@@ -1,5 +1,130 @@
 <!-- Sidebar Fragment -->
-<div th:fragment="sidebar">
+<div th:fragment="sidebar" class="sidebar-container">
+  <style>
+    .modern-sidebar {
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      padding: 1.5rem 1rem;
+    }
+
+    .sidebar-user {
+      display: flex;
+      align-items: center;
+      margin-bottom: 2rem;
+      padding: 0.5rem 0.75rem;
+      border-radius: 12px;
+      background: linear-gradient(135deg, rgba(99, 102, 241, 0.1) 0%, rgba(67, 56, 202, 0.1) 100%);
+    }
+
+    .user-avatar {
+      width: 48px;
+      height: 48px;
+      background: linear-gradient(135deg, #6366F1 0%, #4338CA 100%);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 1.2rem;
+      font-weight: 600;
+      box-shadow: 0 4px 10px rgba(99, 102, 241, 0.2);
+      margin-right: 12px;
+    }
+
+    .user-info {
+      flex: 1;
+      overflow: hidden;
+    }
+
+    .user-name {
+      font-weight: 600;
+      color: white;
+      margin-bottom: 0.2rem;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .user-role {
+      font-size: 0.8rem;
+      color: rgba(255, 255, 255, 0.6);
+    }
+
+    .sidebar-menu {
+      flex: 1;
+    }
+
+    .nav-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+
+    .nav-item {
+      margin-bottom: 0.5rem;
+    }
+
+    .nav-link {
+      display: flex;
+      align-items: center;
+      padding: 0.85rem 1rem;
+      border-radius: 10px;
+      color: rgba(255, 255, 255, 0.7);
+      transition: all 0.3s ease;
+      text-decoration: none;
+    }
+
+    .nav-link:hover {
+      background-color: rgba(255, 255, 255, 0.05);
+      color: white;
+    }
+
+    .nav-link.active {
+      background: linear-gradient(135deg, rgba(99, 102, 241, 0.15) 0%, rgba(67, 56, 202, 0.15) 100%);
+      color: white;
+      border-left: 3px solid #6366F1;
+    }
+
+    .nav-icon {
+      width: 24px;
+      height: 24px;
+      margin-right: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #6366F1;
+    }
+
+    .nav-link.active .nav-icon {
+      color: #6366F1;
+      background: linear-gradient(135deg, #6366F1 0%, #4338CA 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .sidebar-bottom {
+      padding-top: 1rem;
+      border-top: 1px solid rgba(255, 255, 255, 0.05);
+      margin-top: auto;
+    }
+
+    .sidebar-bottom .nav-link {
+      color: rgba(255, 255, 255, 0.5);
+      font-size: 0.9rem;
+    }
+
+    .sidebar-bottom .nav-link:hover {
+      color: rgba(255, 255, 255, 0.8);
+    }
+
+    @media (max-width: 767.98px) {
+      .modern-sidebar {
+        padding: 1rem 0.5rem;
+      }
+    }
+  </style>
+
   <div class="modern-sidebar">
     <!-- User Profile Summary -->
     <div class="sidebar-user">
@@ -17,160 +142,50 @@
     <div class="sidebar-menu">
       <ul class="nav-list">
         <li class="nav-item">
-          <a href="/dashboard" class="nav-link active">
+          <a href="/dashboard" class="nav-link" th:classappend="${#httpServletRequest.requestURI.startsWith('/dashboard') ? 'active' : ''}">
             <div class="nav-icon"><i class="fas fa-home"></i></div>
             <span>Dashboard</span>
           </a>
         </li>
         <li class="nav-item">
-          <a href="/transactions" class="nav-link">
+          <a href="/transactions" class="nav-link" th:classappend="${#httpServletRequest.requestURI.startsWith('/transactions') ? 'active' : ''}">
             <div class="nav-icon"><i class="fas fa-exchange-alt"></i></div>
             <span>Transactions</span>
           </a>
         </li>
         <li class="nav-item">
-          <a href="/accounts" class="nav-link">
+          <a href="/accounts" class="nav-link" th:classappend="${#httpServletRequest.requestURI.startsWith('/accounts') ? 'active' : ''}">
             <div class="nav-icon"><i class="fas fa-wallet"></i></div>
             <span>Accounts</span>
           </a>
         </li>
         <li class="nav-item">
-          <a href="/categories" class="nav-link">
+          <a href="/categories" class="nav-link" th:classappend="${#httpServletRequest.requestURI.startsWith('/categories') ? 'active' : ''}">
             <div class="nav-icon"><i class="fas fa-tags"></i></div>
             <span>Categories</span>
           </a>
         </li>
         <li class="nav-item">
-          <a href="/reports" class="nav-link">
+          <a href="/reports" class="nav-link" th:classappend="${#httpServletRequest.requestURI.startsWith('/reports') ? 'active' : ''}">
             <div class="nav-icon"><i class="fas fa-chart-pie"></i></div>
             <span>Reports</span>
           </a>
         </li>
         <li class="nav-item">
-          <a href="/settings" class="nav-link">
+          <a href="/settings" class="nav-link" th:classappend="${#httpServletRequest.requestURI.startsWith('/settings') ? 'active' : ''}">
             <div class="nav-icon"><i class="fas fa-cog"></i></div>
             <span>Settings</span>
           </a>
         </li>
       </ul>
     </div>
+
+    <!-- Sidebar Bottom Section -->
+    <div class="sidebar-bottom">
+      <a href="/logout" class="nav-link">
+        <div class="nav-icon"><i class="fas fa-sign-out-alt"></i></div>
+        <span>Logout</span>
+      </a>
+    </div>
   </div>
-
-  <!-- CSS for Modern Sidebar -->
-  <style>
-    .modern-sidebar {
-      display: flex;
-      flex-direction: column;
-      background: #ffffff;
-      height: 100vh; /* Full viewport height */
-      width: 250px; /* Fixed width instead of 100% */
-      box-shadow: 0 0 20px rgba(0, 0, 0, 0.05);
-      transition: all 0.3s ease;
-      overflow: hidden; /* Prevent scrolling */
-      padding-top: 20px;
-      position: fixed; /* Fixed position */
-      left: 0;
-      top: 56px; /* Navbar height */
-      bottom: 0;
-      border-right: 1px solid #dee2e6; /* Gray line separator */
-    }
-
-    .sidebar-user {
-      padding: 15px;
-      margin: 0 15px 20px;
-      background: #f8f9fa;
-      border-radius: 12px;
-      display: flex;
-      align-items: center;
-    }
-
-    .user-avatar {
-      width: 40px;
-      height: 40px;
-      border-radius: 50%;
-      background: linear-gradient(135deg, #6c63ff 0%, #8f88ff 100%);
-      color: white;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      font-weight: 600;
-      font-size: 1.2rem;
-      margin-right: 12px;
-    }
-
-    .user-info {
-      flex: 1;
-    }
-
-    .user-name {
-      font-weight: 600;
-      font-size: 0.9rem;
-      color: #333;
-      margin-bottom: 2px;
-    }
-
-    .user-role {
-      font-size: 0.75rem;
-      color: #6c757d;
-    }
-
-    .sidebar-menu {
-      flex: 1;
-      padding: 0 15px;
-    }
-
-    .nav-list {
-      list-style: none;
-      padding: 0;
-      margin: 0;
-    }
-
-    .nav-item {
-      margin-bottom: 5px;
-    }
-
-    .nav-link {
-      display: flex;
-      align-items: center;
-      padding: 12px 15px;
-      border-radius: 10px;
-      color: #495057;
-      text-decoration: none;
-      transition: all 0.2s ease;
-    }
-
-    .nav-link:hover {
-      background-color: rgba(108, 99, 255, 0.08);
-      color: #6c63ff;
-    }
-
-    .nav-link.active {
-      background-color: rgba(108, 99, 255, 0.12);
-      color: #6c63ff;
-      font-weight: 500;
-    }
-
-    .nav-icon {
-      width: 24px;
-      height: 24px;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      margin-right: 12px;
-      font-size: 1.1rem;
-      color: inherit;
-    }
-
-    /* Removed sidebar-footer and support-link styles */
-
-    /* Responsive adjustments */
-    @media (max-width: 767.98px) {
-      .modern-sidebar {
-        width: 100%;
-        height: auto;
-        min-height: auto;
-        box-shadow: none;
-      }
-    }
-  </style>
 </div>

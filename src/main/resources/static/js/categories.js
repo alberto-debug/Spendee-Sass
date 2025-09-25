@@ -22,10 +22,10 @@ document.addEventListener('DOMContentLoaded', () => {
     // Modal elements
     const addCategoryForm = document.getElementById('addCategoryForm');
     const editCategoryForm = document.getElementById('editCategoryForm');
-    const addCategoryModal = new bootstrap.Modal(document.getElementById('addCategoryModal'));
-    const editCategoryModal = new bootstrap.Modal(document.getElementById('editCategoryModal'));
-    const confirmationModal = new bootstrap.Modal(document.getElementById('confirmationModal'));
-    const bulkDeleteModal = new bootstrap.Modal(document.getElementById('bulkDeleteModal'));
+    const addCategoryModal = document.getElementById('addCategoryModal') ? new bootstrap.Modal(document.getElementById('addCategoryModal')) : null;
+    const editCategoryModal = document.getElementById('editCategoryModal') ? new bootstrap.Modal(document.getElementById('editCategoryModal')) : null;
+    const confirmationModal = document.getElementById('confirmationModal') ? new bootstrap.Modal(document.getElementById('confirmationModal')) : null;
+    const bulkDeleteModal = document.getElementById('bulkDeleteModal') ? new bootstrap.Modal(document.getElementById('bulkDeleteModal')) : null;
 
     // API endpoints
     const API_URL = '/api';

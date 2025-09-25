@@ -60,6 +60,8 @@ public class HomeController {
         } else {
             model.addAttribute("userPhotoUrl", null);
         }
+        // Add activePage for sidebar highlighting
+        model.addAttribute("activePage", "dashboard");
 
         return "dashboard/index";
     }

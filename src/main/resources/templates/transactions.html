@@ -32,35 +32,6 @@
             margin-right: 8px;
         }
 
-        /* Sidebar styling */
-        .sidebar-container {
-            background-color: rgba(18, 18, 18, 0.85);
-            backdrop-filter: blur(10px);
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-            height: calc(100vh - 70px);
-            position: sticky;
-            top: 70px;
-            border-right: 1px solid rgba(255, 255, 255, 0.05);
-            overflow-y: auto;
-            padding: 1rem 0;
-            will-change: transform; /* Improve fixed positioning performance */
-            z-index: 100; /* Ensure it stays above other content */
-            overflow-x: hidden; /* Prevent horizontal scrolling */
-        }
-
-        .sidebar-container::-webkit-scrollbar {
-            width: 5px;
-        }
-
-        .sidebar-container::-webkit-scrollbar-track {
-            background: rgba(255, 255, 255, 0.05);
-        }
-
-        .sidebar-container::-webkit-scrollbar-thumb {
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 10px;
-        }
-
         .card {
             border-radius: 16px;
             box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);

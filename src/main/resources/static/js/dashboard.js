@@ -115,9 +115,9 @@ document.addEventListener('DOMContentLoaded', () => {
                         <i class="fas fa-arrow-${isIncome ? 'up' : 'down'} text-white"></i>
                     </div>
                     <div class="flex-grow-1">
-                        <div class="fw-semibold">${transaction.description || '(No Name)'}</div>
-                        <div class="text-muted" style="font-size:0.95rem;">${transaction.categoryName || 'Uncategorized'}</div>
-                        <div class="text-muted" style="font-size:0.85rem;">${formatDate(transaction.date)}</div>
+                        <div class="fw-semibold text-white">${transaction.description || '(No Name)'}</div>
+                        <div class="text-light opacity-75" style="font-size:0.95rem;">${transaction.categoryName || 'Uncategorized'}</div>
+                        <div class="text-light opacity-75" style="font-size:0.85rem;">${formatDate(transaction.date)}</div>
                     </div>
                     <div class="fw-bold text-${isIncome ? 'success' : 'danger'}" style="font-size:1.1rem;">
                         ${isIncome ? '+ ' : '- '}${formatCurrency(transaction.amount)}

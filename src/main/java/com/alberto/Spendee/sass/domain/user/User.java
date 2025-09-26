@@ -43,6 +43,9 @@ public class User implements UserDetails {
     @Column(name = "photo", columnDefinition = "LONGBLOB")
     private byte[] photo;
 
+    @Column(nullable = true)
+    private String fullName;
+
     public User() {
     }
 
@@ -139,5 +142,13 @@ public class User implements UserDetails {
 
     public void setPhoto(byte[] photo) {
         this.photo = photo;
+    }
+
+    public String getFullName() {
+        return fullName;
+    }
+
+    public void setFullName(String fullName) {
+        this.fullName = fullName;
     }
 }

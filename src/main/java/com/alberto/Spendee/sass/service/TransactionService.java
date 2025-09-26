@@ -127,6 +127,18 @@ public class TransactionService {
     }
     
     /**
+     * Delete a transaction by ID for a user
+     */
+    public void deleteTransactionById(Long id, String userEmail) {
+        Transaction transaction = transactionRepository.findById(id)
+            .orElseThrow(() -> new RuntimeException("Transaction not found"));
+        if (!transaction.getUser().getEmail().equals(userEmail)) {
+            throw new RuntimeException("Unauthorized to delete this transaction");
+        }
+        transactionRepository.deleteById(id);
+    }
+
+    /**
      * Convert Transaction entity to TransactionDto
      */
     private TransactionDto convertToDto(Transaction transaction) {

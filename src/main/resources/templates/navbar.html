@@ -18,7 +18,7 @@
             <div class="dropdown">
                 <div class="d-flex align-items-center" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                     <div class="text-end me-3 d-none d-sm-block">
-                        <div class="fw-semibold text-white" style="font-size:1.1rem;" th:text="${#strings.arraySplit(userFullName,' ')[0]}">User</div>
+                        <div class="fw-semibold text-white" style="font-size:1.1rem;" th:text="${userFullName != null ? #strings.arraySplit(userFullName,' ')[0] : 'User'}">User</div>
                         <div id="user-email" class="text-light opacity-75" style="font-size:0.8rem;" th:text="${userEmail}">user@email.com</div>
                     </div>
                     <div class="rounded-circle d-flex align-items-center justify-content-center"
@@ -188,7 +188,7 @@
                 // Fetch user info and photo
                 fetch('/api/user/me', { headers: { 'Authorization': 'Bearer ' + localStorage.getItem('jwt_token') } })
                     .then(res => res.json())
-                    .then data => {
+                    .then(data => {
                         document.getElementById('profileFullName').value = data.fullName || '';
                         document.getElementById('profileEmail').value = data.email || '';
                         document.getElementById('profile-photo-preview').src = data.photoUrl || '/api/user/photo';
@@ -197,12 +197,12 @@
             });
 
             // Close modal
-            document.getElementById('closeProfileModal').onclick = function() {
+            document.getElementById('closeProfileModal')?.addEventListener('click', function() {
                 document.getElementById('profileModal').style.display = 'none';
-            };
-            document.getElementById('cancelProfileModal').onclick = function() {
+            });
+            document.getElementById('cancelProfileModal')?.addEventListener('click', function() {
                 document.getElementById('profileModal').style.display = 'none';
-            };
+            });
             window.onclick = function(event) {
                 if (event.target === document.getElementById('profileModal')) {
                     document.getElementById('profileModal').style.display = 'none';

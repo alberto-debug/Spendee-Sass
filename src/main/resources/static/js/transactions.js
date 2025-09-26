@@ -600,4 +600,9 @@ document.addEventListener('DOMContentLoaded', function() {
             notify?.error('Failed to delete transaction. Please try again.');
         }
     }
+
+    function notify(message, type = 'info') {
+        // Simple notification using alert; replace with toast or custom UI as needed
+        alert(`[${type.toUpperCase()}] ${message}`);
+    }
 });

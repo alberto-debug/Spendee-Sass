@@ -44,4 +44,12 @@ public class DashboardController {
         TransactionDto createdTransaction = transactionService.createTransaction(transactionDto, userEmail);
         return ResponseEntity.ok(createdTransaction);
     }
+
+    @DeleteMapping("/transactions/{id}")
+    public ResponseEntity<Void> deleteTransaction(@PathVariable Long id) {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        String userEmail = auth.getName();
+        transactionService.deleteTransactionById(id, userEmail);
+        return ResponseEntity.noContent().build();
+    }
 }

@@ -4,8 +4,8 @@
 // Hybrid authentication - Traditional form + JWT API support
 document.addEventListener('DOMContentLoaded', function() {
     const loginForm = document.getElementById('loginForm');
-    const registrationForm = document.getElementById('registrationForm');
-    const registerLink = document.getElementById('registerLink');
+    const registrationForm = document.getElementById('registration-form');
+    const registerLink = document.getElementById('register-link');
 
     // Floating labels (retain existing behavior if present)
     document.querySelectorAll('.form-floating input').forEach(input => {
@@ -138,22 +138,58 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // REGISTRATION SUBMIT - JWT API registration
+    // Registration form handler
     if (registrationForm) {
         registrationForm.addEventListener('submit', function(e) {
             e.preventDefault();
-            if (typeof notify === 'undefined') {
-                console.warn('[auth.js] notify not available');
-            }
+
+            // Create a fallback notification function if notify isn't available
+            const notifyFallback = {
+                success: function(message) { alert(message); },
+                error: function(message) { alert(message); },
+                info: function(message) { console.log('[Auth] Info:', message); }
+            };
+
+            // Use notify if available, otherwise use fallback
+            const notification = window.notify || notifyFallback;
 
             const firstNameField = document.getElementById('firstName');
             const lastNameField = document.getElementById('lastName');
             const emailField = document.getElementById('regEmail');
             const passwordField = document.getElementById('regPassword');
 
-            if (!firstNameField.value.trim()) { notify?.error('Please enter your first name'); firstNameField.focus(); return; }
-            if (!lastNameField.value.trim()) { notify?.error('Please enter your last name'); lastNameField.focus(); return; }
-            if (!validateEmail(emailField.value)) { notify?.error('Please enter a valid email address'); emailField.focus(); return; }
-            if (!validatePassword(passwordField.value)) { notify?.error('Password must be at least 8 characters long'); passwordField.value; return; }
+            if (!firstNameField.value.trim()) {
+                notification.error('Please enter your first name');
+                firstNameField.focus();
+                return;
+            }
+            if (!lastNameField.value.trim()) {
+                notification.error('Please enter your last name');
+                lastNameField.focus();
+                return;
+            }
+
+            // Ensure validateEmail function is available
+            const isValidEmail = typeof validateEmail === 'function'
+                ? validateEmail(emailField.value)
+                : /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailField.value);
+
+            if (!isValidEmail) {
+                notification.error('Please enter a valid email address');
+                emailField.focus();
+                return;
+            }
+
+            // Ensure validatePassword function is available
+            const isValidPassword = typeof validatePassword === 'function'
+                ? validatePassword(passwordField.value)
+                : passwordField.value.length >= 8;
+
+            if (!isValidPassword) {
+                notification.error('Password must be at least 8 characters long');
+                passwordField.focus();
+                return;
+            }
 
             const submitButton = registrationForm.querySelector('button[type="submit"]');
             const originalButtonText = submitButton.innerHTML;
@@ -183,40 +219,21 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
 
                 if (!response.ok) {
-                    throw new Error(data.message || data || 'Registration failed');
+                    notification.error(data.message || 'Registration failed.');
+                    submitButton.innerHTML = originalButtonText;
+                    submitButton.disabled = false;
+                    return;
                 }
-                return data;
+                // Registration successful
+                notification.success('Registered successfully! Please log in.');
+                setTimeout(() => {
+                    window.location.href = '/auth/login';
+                }, 1500);
             })
-            .then(data => {
-                if (data.token) {
-                    // Registration successful, store token
-                    localStorage.setItem('jwt_token', data.token);
-                    localStorage.setItem('user_email', emailField.value);
-
-                    // Set token as cookie for server-side rendering
-                    document.cookie = `jwt_token=${data.token}; path=/; SameSite=Strict`;
-
-                    notify?.success('Registration successful! Redirecting to dashboard...');
-                    registrationForm.reset();
-
-                    if (registrationModalElement) {
-                        const inst = bootstrap.Modal.getInstance(registrationModalElement);
-                        inst?.hide();
-                    }
-
-                    setTimeout(() => { window.location.href = '/dashboard?login=success'; }, 1500);
-                } else {
-                    notify?.success('Registration successful! Please login.');
-                    registrationForm.reset();
-
-                    if (registrationModalElement) {
-                        const inst = bootstrap.Modal.getInstance(registrationModalElement);
-                        inst?.hide();
-                    }
-                }
-            })
-            .catch(err => {
-                notify?.error(err.message || 'Registration failed: Email may already be taken');
+            .catch(error => {
+                notification.error('Registration error: ' + error);
+                submitButton.innerHTML = originalButtonText;
+                submitButton.disabled = false;
             })
             .finally(() => {
                 submitButton.innerHTML = originalButtonText;

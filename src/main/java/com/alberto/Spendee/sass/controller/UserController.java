@@ -31,7 +31,8 @@ public class UserController {
         User user = userRepository.findByEmail(principal.getName()).orElse(null);
         if (user == null) return ResponseEntity.status(404).body("User not found");
         Map<String, Object> result = new HashMap<>();
-        result.put("fullName", user.getFirstName() + " " + user.getLastName());
+        result.put("firstName", user.getFirstName());
+        result.put("lastName", user.getLastName());
         result.put("email", user.getEmail());
         result.put("photoUrl", "/api/user/photo");
         return ResponseEntity.ok(result);
@@ -41,7 +42,8 @@ public class UserController {
     @PostMapping(value = "/update", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<?> updateUser(
             Principal principal,
-            @RequestParam("fullName") String fullName,
+            @RequestParam("firstName") String firstName,
+            @RequestParam("lastName") String lastName,
             @RequestParam("email") String email,
             @RequestParam(value = "photo", required = false) MultipartFile photo
     ) {
@@ -49,9 +51,8 @@ public class UserController {
         if (user == null) return ResponseEntity.status(404).body("User not found");
 
         // Update name
-        String[] names = fullName.split(" ", 2);
-        user.setFirstName(names[0]);
-        if (names.length > 1) user.setLastName(names[1]);
+        user.setFirstName(firstName);
+        user.setLastName(lastName);
         user.setEmail(email);
 
         // Save photo as bytes with compression

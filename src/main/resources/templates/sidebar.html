@@ -171,10 +171,10 @@
     <div class="sidebar-user">
       <div class="user-avatar">
         <img th:if="${userPhotoUrl != null}" th:src="${userPhotoUrl}" alt="User Photo" class="rounded-circle" style="width:48px;height:48px;object-fit:cover;">
-        <span th:if="${userPhotoUrl == null}" th:text="${userFullName?.substring(0,1)}">U</span>
+        <span th:if="${userPhotoUrl == null}" th:text="${userFirstName != null ? userFirstName.substring(0,1) : 'U'}">U</span>
       </div>
       <div class="user-info">
-        <div class="user-name" th:text="${#strings.arraySplit(userFullName,' ')[0]}">User</div>
+        <div class="user-name" th:text="${userFirstName != null ? userFirstName : 'User'}">User</div>
         <div class="user-role">Personal Account</div>
       </div>
     </div>

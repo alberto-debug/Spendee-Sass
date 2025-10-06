@@ -157,8 +157,12 @@
                          style="width:80px; height:80px; object-fit:cover; border: 3px solid rgba(99, 102, 241, 0.3); box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);">
                 </div>
                 <div class="mb-3">
-                    <label for="profileFullName" class="form-label">Full Name</label>
-                    <input type="text" class="form-control" id="profileFullName" name="fullName" required>
+                    <label for="profileFirstName" class="form-label">First Name</label>
+                    <input type="text" class="form-control" id="profileFirstName" name="firstName" required>
+                </div>
+                <div class="mb-3">
+                    <label for="profileLastName" class="form-label">Last Name</label>
+                    <input type="text" class="form-control" id="profileLastName" name="lastName" required>
                 </div>
                 <div class="mb-3">
                     <label for="profileEmail" class="form-label">Email</label>
@@ -189,7 +193,8 @@
                 fetch('/api/user/me', { headers: { 'Authorization': 'Bearer ' + localStorage.getItem('jwt_token') } })
                     .then(res => res.json())
                     .then(data => {
-                        document.getElementById('profileFullName').value = data.fullName || '';
+                        document.getElementById('profileFirstName').value = data.firstName || '';
+                        document.getElementById('profileLastName').value = data.lastName || '';
                         document.getElementById('profileEmail').value = data.email || '';
                         document.getElementById('profile-photo-preview').src = data.photoUrl || '/api/user/photo';
                         document.getElementById('profileModal').style.display = 'block';

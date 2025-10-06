@@ -21,7 +21,7 @@ import org.slf4j.LoggerFactory;
 @RequestMapping("/api/auth")
 public class AuthController {
 
-    private static final Logger log = LoggerFactory.getLogger(AuthController.class);
+    private static final Logger logger = LoggerFactory.getLogger(AuthController.class);
 
     @Autowired
     private AuthService authService;
@@ -47,7 +47,7 @@ public class AuthController {
         if (passwordEncoder.matches(body.password(), user.getPassword())) {
             String token = this.tokenService.generateToken(user);
             String userLogged = "User Logged Successfully";
-            log.info("{} Name: {}", userLogged, user.getFirstName());
+            logger.info("{} Name: {}", userLogged, user.getFirstName());
             return ResponseEntity.ok(new ResponseDTO(userLogged, token));
         }
         return ResponseEntity.badRequest().build();
@@ -62,7 +62,7 @@ public class AuthController {
 
             // Check if the user already exists
             if (repository.findByEmail(body.getEmail()).isPresent()) {
-                System.err.println("Error: User already exists with email " + body.getEmail());
+                logger.error("User already exists with email {}", body.getEmail());
                 return ResponseEntity.status(409).body("User already exists with this email");
             }
 
@@ -83,31 +83,17 @@ public class AuthController {
             String token = tokenService.generateToken(newUser);
 
             String successMessage = "User Registered Successfully";
-            System.out.println(successMessage + " Name: " + newUser.getFirstName());
+            logger.info("{} Name: {}", successMessage, newUser.getFirstName());
             return ResponseEntity.ok(new ResponseDTO(successMessage, token));
         } catch (ValidationService.ValidationException e) {
-            // Handle validation errors
-            System.err.println("Validation error: " + e.getMessage());
+            logger.error("Validation error: {}", e.getMessage());
             return ResponseEntity.status(400).body(e.getMessage());
         } catch (Exception e) {
-            // Handle unexpected errors
-            System.err.println("Unexpected error during user registration: " + e.getMessage());
-            e.printStackTrace();
+            logger.error("Unexpected error during user registration", e);
             return ResponseEntity.status(500).body("An unexpected error occurred");
         }
     }
 
-    // Keep existing traditional registration endpoint for form-based registration
-    @PostMapping("/register/traditional")
-    public ResponseEntity<String> registerTraditional(@Valid @RequestBody RegistrationDto registrationDto) {
-        try {
-            User user = authService.register(registrationDto);
-            return new ResponseEntity<>("User registered successfully", HttpStatus.CREATED);
-        } catch (RuntimeException e) {
-            return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
-        }
-    }
-    
     @PostMapping("/admin/promote/{userId}")
     public ResponseEntity<String> makeAdmin(@PathVariable Long userId) {
         try {

@@ -85,8 +85,19 @@
             border: 1px solid rgba(255, 255, 255, 0.1);
             margin-bottom: 20px;
             transition: all 0.3s ease;
-            color: #fff;
+            color: #fff !important;
             font-size: 15px;
+            -webkit-text-fill-color: #fff !important; /* For autofill */
+        }
+
+        input.form-control:-webkit-autofill,
+        input.form-control:-webkit-autofill:focus,
+        input.form-control:-webkit-autofill:hover,
+        input.form-control:-webkit-autofill:active {
+            box-shadow: 0 0 0 1000px #222 inset !important;
+            -webkit-text-fill-color: #fff !important;
+            background-color: #222 !important;
+            color: #fff !important;
         }
 
         .form-control:focus {
@@ -313,11 +324,9 @@
             <div class="mb-3">
                 <input type="email" class="form-control" id="email" name="email" placeholder="Email address" required>
             </div>
-
             <div class="mb-3">
                 <input type="password" class="form-control" id="password" name="password" placeholder="Password" required>
             </div>
-
             <div class="d-grid gap-2">
                 <button type="submit" class="btn-auth">Sign In</button>
             </div>

@@ -105,40 +105,47 @@ class ToastManager {
     }
 
     /**
-     * Success toast shorthand
+     * Show a success toast
+     * @param {string} message - The message to display
+     * @param {number} duration - Duration in milliseconds
      */
-    success(message, duration) {
+    success(message, duration = 5000) {
         this.show(message, 'success', duration);
     }
 
     /**
-     * Error toast shorthand
+     * Show an error toast
+     * @param {string} message - The message to display
+     * @param {number} duration - Duration in milliseconds
      */
-    error(message, duration) {
+    error(message, duration = 5000) {
         this.show(message, 'error', duration);
     }
 
     /**
-     * Warning toast shorthand
+     * Show a warning toast
+     * @param {string} message - The message to display
+     * @param {number} duration - Duration in milliseconds
      */
-    warning(message, duration) {
+    warning(message, duration = 5000) {
         this.show(message, 'warning', duration);
     }
 
     /**
-     * Info toast shorthand
+     * Show an info toast
+     * @param {string} message - The message to display
+     * @param {number} duration - Duration in milliseconds
      */
-    info(message, duration) {
+    info(message, duration = 5000) {
         this.show(message, 'info', duration);
     }
 }
 
-// Create global toast instance
-const toast = new ToastManager();
-// Also expose explicitly on window for robustness across scripts / scopes
-if (typeof window !== 'undefined') {
-    window.toast = toast;
-}
+// Create a global notify object instance
+window.notify = new ToastManager();
+
+// For backward compatibility
+window.toast = window.notify;
 
 // Form validation functions
 function validateEmail(email) {

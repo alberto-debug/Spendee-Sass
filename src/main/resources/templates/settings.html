@@ -175,8 +175,12 @@
                             <div class="settings-title"><i class="fas fa-cog me-2"></i>Settings</div>
                             <form id="settings-form">
                                 <div class="settings-section">
-                                    <label class="form-label" for="settingsFullName">Full Name</label>
-                                    <input type="text" class="form-control" id="settingsFullName" name="fullName" th:value="${userFullName}" required>
+                                    <label class="form-label" for="settingsFirstName">First Name</label>
+                                    <input type="text" class="form-control" id="settingsFirstName" name="firstName" th:value="${userFirstName}" required>
+                                </div>
+                                <div class="settings-section">
+                                    <label class="form-label" for="settingsLastName">Last Name</label>
+                                    <input type="text" class="form-control" id="settingsLastName" name="lastName" th:value="${userLastName}" required>
                                 </div>
                                 <div class="settings-section">
                                     <label class="form-label" for="settingsEmail">Email</label>

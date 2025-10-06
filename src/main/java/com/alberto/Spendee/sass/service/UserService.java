@@ -21,11 +21,13 @@ public class UserService {
         return userOpt.orElse(null);
     }
 
-    public boolean updateUserInfo(String currentEmail, String fullName, String email, String password) {
+    public boolean updateUserInfo(String currentEmail, String firstName, String lastName, String email, String password) {
         Optional<User> userOpt = userRepository.findByEmail(currentEmail);
         if (userOpt.isEmpty()) return false;
         User user = userOpt.get();
-        user.setFullName(fullName);
+
+        user.setFirstName(firstName);
+        user.setLastName(lastName);
         user.setEmail(email);
         if (password != null && !password.isBlank()) {
             user.setPassword(passwordEncoder.encode(password));
@@ -34,4 +36,3 @@ public class UserService {
         return true;
     }
 }
-

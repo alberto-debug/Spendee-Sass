@@ -83,6 +83,63 @@ document.addEventListener('DOMContentLoaded', function() {
     // Load and display transactions
     loadTransactions();
 
+    // Format amount input as user types
+    const amountInput = document.getElementById('amount');
+    amountInput.addEventListener('input', function(e) {
+        // Get cursor position before updating value
+        const cursorPos = e.target.selectionStart;
+        let value = e.target.value;
+
+        // Remove any non-digit characters except decimal point
+        value = value.replace(/[^\d.]/g, '');
+
+        // Handle decimal points
+        const parts = value.split('.');
+        if (parts.length > 2) {
+            value = parts[0] + '.' + parts.slice(1).join('');
+        }
+
+        // Format number
+        if (value) {
+            // Handle case where user is typing before decimal
+            if (!value.includes('.')) {
+                const num = parseFloat(value);
+                value = num.toFixed(2);
+            } else {
+                // Ensure two decimal places but allow typing
+                const decimals = parts[1] || '';
+                if (decimals.length > 2) {
+                    value = parts[0] + '.' + decimals.substring(0, 2);
+                }
+            }
+        }
+
+        e.target.value = value;
+
+        // Restore cursor position if typing before decimal
+        if (cursorPos <= parts[0].length) {
+            e.target.setSelectionRange(cursorPos, cursorPos);
+        }
+    });
+
+    // Handle focus to select all text
+    amountInput.addEventListener('focus', function(e) {
+        e.target.select();
+    });
+
+    // Handle blur to ensure proper format
+    amountInput.addEventListener('blur', function(e) {
+        let value = e.target.value;
+        if (value) {
+            e.target.value = parseFloat(value).toFixed(2);
+        }
+    });
+
+    // Prevent scrolling from changing the number
+    amountInput.addEventListener('wheel', function(e) {
+        e.preventDefault();
+    });
+
     // Handle transaction form submission
     document.getElementById('saveTransaction').addEventListener('click', function() {
         const form = document.getElementById('addTransactionForm');
@@ -91,21 +148,20 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
 
-        const dateStr = document.getElementById('date').value; // This is already in YYYY-MM-DD format
-        const amount = parseFloat(document.getElementById('amount').value).toFixed(2); // Ensure 2 decimal places
+        const dateStr = document.getElementById('date').value;
+        let amount = document.getElementById('amount').value;
+
+        // Ensure amount is properly formatted with two decimal places
+        amount = parseFloat(amount).toFixed(2);
         const categoryId = document.getElementById('category').value;
 
         const formData = {
             description: document.getElementById('description').value,
             amount: amount,
-            date: dateStr,  // Backend will parse this ISO format date
+            date: dateStr,
+            categoryId: categoryId || null,
             type: document.getElementById('transactionType').value
         };
-
-        // Only include categoryId if one was selected
-        if (categoryId) {
-            formData.categoryId = parseInt(categoryId, 10);
-        }
 
         fetch('/api/transactions', {
             method: 'POST',

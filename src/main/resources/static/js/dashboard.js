@@ -38,11 +38,152 @@ document.addEventListener('DOMContentLoaded', () => {
             .then(summary => {
                 // Update the UI with the summary data
                 updateDashboardSummary(summary);
+
+                // Initialize the chart with monthly data
+                if (summary.monthlyData) {
+                    initializeChart(summary.monthlyData);
+                } else {
+                    // Sample data for testing
+                    const sampleData = generateSampleData();
+                    initializeChart(sampleData);
+                }
             })
             .catch(error => {
                 console.error('Error fetching dashboard summary:', error);
                 // Show error in UI if needed
             });
+    }
+
+    function generateSampleData() {
+        const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'];
+        return {
+            labels: months,
+            income: months.map(() => Math.floor(Math.random() * 5000) + 3000),
+            expenses: months.map(() => Math.floor(Math.random() * 4000) + 2000)
+        };
+    }
+
+    function initializeChart(data) {
+        const ctx = document.getElementById('financialChart').getContext('2d');
+
+        if (window.financialChart) {
+            window.financialChart.destroy();
+        }
+
+        window.financialChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: data.labels || Object.keys(data),
+                datasets: [
+                    {
+                        label: 'Income',
+                        data: data.income || Object.values(data).map(m => m.income),
+                        borderColor: 'rgba(236, 72, 153, 1)',  // Pink
+                        backgroundColor: 'rgba(236, 72, 153, 0.1)',
+                        borderWidth: 3,
+                        tension: 0.4,
+                        fill: true,
+                        pointBackgroundColor: 'rgba(236, 72, 153, 1)',
+                        pointBorderColor: 'rgba(236, 72, 153, 0.2)',
+                        pointBorderWidth: 2,
+                        pointRadius: 0,
+                        pointHoverRadius: 6,
+                        pointHoverBorderWidth: 3,
+                        pointHoverBackgroundColor: 'rgba(236, 72, 153, 1)',
+                        pointHoverBorderColor: '#fff'
+                    },
+                    {
+                        label: 'Expenses',
+                        data: data.expenses || Object.values(data).map(m => m.expenses),
+                        borderColor: 'rgba(59, 130, 246, 1)',  // Blue
+                        backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                        borderWidth: 3,
+                        tension: 0.4,
+                        fill: true,
+                        pointBackgroundColor: 'rgba(59, 130, 246, 1)',
+                        pointBorderColor: 'rgba(59, 130, 246, 0.2)',
+                        pointBorderWidth: 2,
+                        pointRadius: 0,
+                        pointHoverRadius: 6,
+                        pointHoverBorderWidth: 3,
+                        pointHoverBackgroundColor: 'rgba(59, 130, 246, 1)',
+                        pointHoverBorderColor: '#fff'
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                interaction: {
+                    intersect: false,
+                    mode: 'nearest',
+                    axis: 'x'
+                },
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    tooltip: {
+                        backgroundColor: 'rgba(17, 24, 39, 0.8)',
+                        titleColor: '#fff',
+                        bodyColor: '#fff',
+                        padding: 12,
+                        boxPadding: 6,
+                        usePointStyle: true,
+                        callbacks: {
+                            label: function(context) {
+                                return ` ${context.dataset.label}: ${formatCurrency(context.raw)}`;
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        grid: {
+                            display: true,
+                            color: 'rgba(255, 255, 255, 0.1)',
+                            drawBorder: false,
+                            tickLength: 0
+                        },
+                        ticks: {
+                            color: 'rgba(255, 255, 255, 0.7)',
+                            font: {
+                                size: 12,
+                                weight: '300'
+                            },
+                            padding: 8
+                        }
+                    },
+                    y: {
+                        beginAtZero: true,
+                        grid: {
+                            display: true,
+                            color: 'rgba(255, 255, 255, 0.1)',
+                            drawBorder: false
+                        },
+                        ticks: {
+                            color: 'rgba(255, 255, 255, 0.7)',
+                            font: {
+                                size: 12,
+                                weight: '300'
+                            },
+                            padding: 8,
+                            callback: function(value) {
+                                return formatCurrency(value);
+                            }
+                        }
+                    }
+                },
+                animations: {
+                    tension: {
+                        duration: 1000,
+                        easing: 'easeInOutQuart',
+                        from: 0.8,
+                        to: 0.4
+                    }
+                }
+            }
+        });
     }
 
     /**
@@ -136,7 +277,8 @@ document.addEventListener('DOMContentLoaded', () => {
         return new Intl.NumberFormat('en-US', {
             style: 'currency',
             currency: 'USD',
-            minimumFractionDigits: 2
+            minimumFractionDigits: 0,
+            maximumFractionDigits: 0
         }).format(amount);
     }
 

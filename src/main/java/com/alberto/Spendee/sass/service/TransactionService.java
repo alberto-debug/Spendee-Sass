@@ -45,6 +45,17 @@ public class TransactionService {
         LocalDate firstDay = currentMonth.atDay(1);
         LocalDate lastDay = currentMonth.atEndOfMonth();
         
+        // Calculate all-time totals
+        BigDecimal totalExpenses = transactionRepository.sumAmountByUserAndType(
+                user, TransactionType.EXPENSE) != null ?
+                transactionRepository.sumAmountByUserAndType(user, TransactionType.EXPENSE) :
+                BigDecimal.ZERO;
+
+        BigDecimal totalIncome = transactionRepository.sumAmountByUserAndType(
+                user, TransactionType.INCOME) != null ?
+                transactionRepository.sumAmountByUserAndType(user, TransactionType.INCOME) :
+                BigDecimal.ZERO;
+
         // Calculate monthly totals
         BigDecimal monthlyExpenses = transactionRepository.sumAmountByUserAndTypeAndDateBetween(
                 user, TransactionType.EXPENSE, firstDay, lastDay) != null ? 
@@ -76,10 +87,12 @@ public class TransactionService {
         double incomeChange = calculatePercentageChange(previousMonthlyIncome, monthlyIncome);
 
         return new DashboardSummaryDto(
-                monthlyIncome,
-                monthlyExpenses,
+                totalIncome,        // Changed from monthlyIncome to totalIncome
+                totalExpenses,      // Changed from monthlyExpenses to totalExpenses
                 incomeChange,
-                expenseChange
+                expenseChange,
+                monthlyIncome,      // Added monthly figures
+                monthlyExpenses     // Added monthly figures
         );
     }
     

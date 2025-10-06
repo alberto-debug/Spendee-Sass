@@ -79,10 +79,18 @@ document.addEventListener('DOMContentLoaded', () => {
             financialChart.destroy();
         }
 
-        const monthlyIncome = summary.monthlyIncome || 0;
-        const monthlyExpenses = summary.monthlyExpenses || 0;
-        const previousMonthIncome = summary.previousMonthIncome || 0;
-        const previousMonthExpenses = summary.previousMonthExpenses || 0;
+        // Ensure we have numeric values
+        const monthlyIncome = Number(summary.monthlyIncome) || 0;
+        const monthlyExpenses = Number(summary.monthlyExpenses) || 0;
+        const previousMonthIncome = Number(summary.previousMonthIncome) || 0;
+        const previousMonthExpenses = Number(summary.previousMonthExpenses) || 0;
+
+        console.log('Chart Data:', {
+            monthlyIncome,
+            monthlyExpenses,
+            previousMonthIncome,
+            previousMonthExpenses
+        });
 
         financialChart = new Chart(ctx, {
             type: 'line',
@@ -92,7 +100,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     {
                         label: 'Income',
                         data: [previousMonthIncome, monthlyIncome],
-                        backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                        backgroundColor: 'rgba(16, 185, 129, 0.2)',
                         borderColor: '#10B981',
                         borderWidth: 3,
                         tension: 0.4,
@@ -102,12 +110,12 @@ document.addEventListener('DOMContentLoaded', () => {
                         pointBorderWidth: 2,
                         pointRadius: 6,
                         pointHoverRadius: 8,
-                        order: 1
+                        yAxisID: 'y'
                     },
                     {
                         label: 'Expenses',
                         data: [previousMonthExpenses, monthlyExpenses],
-                        backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                        backgroundColor: 'rgba(239, 68, 68, 0.2)',
                         borderColor: '#EF4444',
                         borderWidth: 3,
                         tension: 0.4,
@@ -117,7 +125,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         pointBorderWidth: 2,
                         pointRadius: 6,
                         pointHoverRadius: 8,
-                        order: 2
+                        yAxisID: 'y'
                     }
                 ]
             },
@@ -126,14 +134,20 @@ document.addEventListener('DOMContentLoaded', () => {
                 maintainAspectRatio: false,
                 interaction: {
                     intersect: false,
-                    mode: 'index'
+                    mode: 'nearest'
+                },
+                stacked: false,
+                animation: {
+                    duration: 1000
                 },
                 scales: {
                     y: {
+                        type: 'linear',
+                        display: true,
+                        position: 'left',
                         beginAtZero: true,
                         grid: {
                             color: 'rgba(0, 0, 0, 0.1)',
-                            drawBorder: false
                         },
                         ticks: {
                             callback: value => '$' + value.toLocaleString('en-US')
@@ -147,14 +161,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 },
                 plugins: {
                     legend: {
-                        display: true,
-                        position: 'top',
+                        position: 'right',
+                        align: 'center',
                         labels: {
                             usePointStyle: true,
-                            padding: 20,
+                            padding: 15,
                             font: {
                                 size: 12,
-                                weight: '500'
+                                weight: '600'
                             }
                         }
                     },

@@ -86,11 +86,7 @@ public class TransactionService {
     /**
      * Create a new transaction
      */
-    public TransactionDto createTransaction(TransactionDto transactionDto, String userEmail) {
-        User user = userRepository.findByEmail(userEmail)
-                .orElseThrow(() -> new RuntimeException("User not found"));
-
-        // Create transaction without requiring a category
+    public Transaction createTransaction(TransactionDto transactionDto, User user) {
         Transaction transaction = new Transaction();
         transaction.setUser(user);
         transaction.setDate(transactionDto.getDate());
@@ -98,92 +94,129 @@ public class TransactionService {
         transaction.setDescription(transactionDto.getDescription());
         transaction.setType(transactionDto.getType());
         
-        // Only set category if it exists
+        // Only set category if categoryId is provided
         if (transactionDto.getCategoryId() != null) {
-            try {
-                Category category = categoryRepository.findById(transactionDto.getCategoryId())
-                    .orElse(null);
-                transaction.setCategory(category);
-            } catch (Exception e) {
-                // Ignore category errors - category is optional
+            Category category = categoryRepository.findById(transactionDto.getCategoryId())
+                .orElseThrow(() -> new RuntimeException("Category not found"));
+            // Verify category belongs to user
+            if (!category.getUser().getId().equals(user.getId())) {
+                throw new RuntimeException("Category doesn't belong to user");
             }
+            transaction.setCategory(category);
         }
 
-        Transaction savedTransaction = transactionRepository.save(transaction);
-        
-        return convertToDto(savedTransaction);
+        return transactionRepository.save(transaction);
     }
-    
+
     /**
      * Get all transactions for a user
      */
-    public List<TransactionDto> getAllTransactions(String userEmail) {
-        User user = userRepository.findByEmail(userEmail)
-                .orElseThrow(() -> new RuntimeException("User not found"));
-                
+    public List<TransactionDto> getAllTransactionsByUser(User user) {
         List<Transaction> transactions = transactionRepository.findByUserOrderByDateDesc(user);
-        
         return transactions.stream()
                 .map(this::convertToDto)
                 .collect(Collectors.toList());
     }
     
     /**
-     * Delete a transaction by ID for a user
+     * Get a specific transaction by ID and user
      */
-    public void deleteTransactionById(Long id, String userEmail) {
-        Transaction transaction = transactionRepository.findById(id)
-            .orElseThrow(() -> new RuntimeException("Transaction not found"));
-        if (!transaction.getUser().getEmail().equals(userEmail)) {
-            throw new RuntimeException("Unauthorized to delete this transaction");
-        }
-        transactionRepository.deleteById(id);
+    public Transaction getTransactionByIdAndUser(Long id, User user) {
+        return transactionRepository.findById(id)
+                .filter(t -> t.getUser().getId().equals(user.getId()))
+                .orElseThrow(() -> new RuntimeException("Transaction not found"));
     }
 
     /**
-     * Get recent transactions for a user
+     * Update an existing transaction
      */
-    public List<TransactionDto> getRecentTransactions(String email, int limit) {
+    public Transaction updateTransaction(Long id, TransactionDto transactionDto, User user) {
+        Transaction transaction = getTransactionByIdAndUser(id, user);
+
+        transaction.setDate(transactionDto.getDate());
+        transaction.setAmount(transactionDto.getAmount());
+        transaction.setDescription(transactionDto.getDescription());
+        transaction.setType(transactionDto.getType());
+
+        // Update category if provided, remove if null
+        if (transactionDto.getCategoryId() != null) {
+            Category category = categoryRepository.findById(transactionDto.getCategoryId())
+                .orElseThrow(() -> new RuntimeException("Category not found"));
+            if (!category.getUser().getId().equals(user.getId())) {
+                throw new RuntimeException("Category doesn't belong to user");
+            }
+            transaction.setCategory(category);
+        } else {
+            transaction.setCategory(null);
+        }
+
+        return transactionRepository.save(transaction);
+    }
+
+    public List<Transaction> getTransactionsByUser(User user) {
+        return transactionRepository.findByUserOrderByDateDesc(user);
+    }
+
+    public List<Transaction> getRecentTransactions(String email, int limit) {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("User not found"));
-
         return transactionRepository.findByUserOrderByDateDesc(user)
                 .stream()
                 .limit(limit)
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * Delete a transaction
+     */
+    public void deleteTransaction(Long id, User user) {
+        Transaction transaction = transactionRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Transaction not found"));
+
+        if (!transaction.getUser().getId().equals(user.getId())) {
+            throw new RuntimeException("Unauthorized to delete this transaction");
+        }
+
+        transactionRepository.delete(transaction);
+    }
+
+    /**
+     * Get transactions for a specific month
+     */
+    public List<TransactionDto> getTransactionsForMonth(User user, LocalDate date) {
+        LocalDate startDate = date.withDayOfMonth(1);
+        LocalDate endDate = date.withDayOfMonth(date.lengthOfMonth());
+
+        List<Transaction> transactions = transactionRepository
+            .findByUserAndDateBetweenOrderByDateDesc(user, startDate, endDate);
+
+        return transactions.stream()
                 .map(this::convertToDto)
                 .collect(Collectors.toList());
     }
 
-    private double calculatePercentageChange(BigDecimal oldValue, BigDecimal newValue) {
-        if (oldValue.equals(BigDecimal.ZERO)) {
-            return newValue.equals(BigDecimal.ZERO) ? 0.0 : 100.0;
-        }
-        return newValue.subtract(oldValue)
-                .multiply(BigDecimal.valueOf(100))
-                .divide(oldValue.abs(), 2, BigDecimal.ROUND_HALF_UP)
-                .doubleValue();
+    /**
+     * Convert Transaction entity to DTO
+     */
+    public TransactionDto convertToDto(Transaction transaction) {
+        return new TransactionDto(
+            transaction.getId(),
+            transaction.getCategory() != null ? transaction.getCategory().getId() : null,
+            transaction.getCategory() != null ? transaction.getCategory().getName() : null,
+            transaction.getDate(),
+            transaction.getAmount(),
+            transaction.getDescription(),
+            transaction.getType()
+        );
     }
 
-    /**
-     * Convert Transaction entity to TransactionDto
-     */
-    private TransactionDto convertToDto(Transaction transaction) {
-        Long categoryId = null;
-        String categoryName = "Uncategorized";
-
-        if (transaction.getCategory() != null) {
-            categoryId = transaction.getCategory().getId();
-            categoryName = transaction.getCategory().getName();
+    private double calculatePercentageChange(BigDecimal previous, BigDecimal current) {
+        if (previous.compareTo(BigDecimal.ZERO) == 0) {
+            return current.compareTo(BigDecimal.ZERO) == 0 ? 0 : 100;
         }
-
-        return new TransactionDto(
-                transaction.getId(),
-                categoryId,
-                categoryName,
-                transaction.getDate(),
-                transaction.getAmount(),
-                transaction.getDescription(),
-                transaction.getType()
-        );
+        return current.subtract(previous)
+                .divide(previous, 4, BigDecimal.ROUND_HALF_UP)
+                .multiply(BigDecimal.valueOf(100))
+                .doubleValue();
     }
 }

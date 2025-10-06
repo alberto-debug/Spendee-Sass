@@ -313,13 +313,14 @@
                 padding: 1.5rem;
                 margin-bottom: 2.5rem;
                 border: 1px solid rgba(255, 255, 255, 0.1);
+                height: 250px; /* Added fixed height */
             }
 
             .chart-header {
                 display: flex;
                 justify-content: space-between;
                 align-items: center;
-                margin-bottom: 1.5rem;
+                margin-bottom: 1rem; /* Reduced margin */
             }
 
             .chart-title {
@@ -432,16 +433,16 @@
                     <p>Start adding your transactions to track your expenses and income.</p>
                 </div>
                 <div th:each="transaction : ${recentTransactions}" class="transaction-item">
-                    <div th:class="${transaction.type == 'EXPENSE' ? 'transaction-icon expense-icon' : 'transaction-icon income-icon'}">
-                        <i th:class="${transaction.type == 'EXPENSE' ? 'fas fa-arrow-down' : 'fas fa-arrow-up'}"></i>
+                    <div th:class="${transaction.type.name() == 'EXPENSE' ? 'transaction-icon expense-icon' : 'transaction-icon income-icon'}">
+                        <i th:class="${transaction.type.name() == 'EXPENSE' ? 'fas fa-arrow-down' : 'fas fa-arrow-up'}"></i>
                     </div>
                     <div class="transaction-info">
                         <div class="transaction-title" th:text="${transaction.description}">Transaction Description</div>
-                        <div class="transaction-category" th:text="${transaction.category.name}">Category</div>
+                        <div class="transaction-category" th:text="${transaction.category != null ? transaction.category.name : 'Uncategorized'}">Category</div>
                     </div>
                     <div class="text-end">
-                        <div th:class="${transaction.type == 'EXPENSE' ? 'transaction-amount amount-expense' : 'transaction-amount amount-income'}"
-                             th:text="${transaction.type == 'EXPENSE' ? '-' : '+'} + ${#numbers.formatCurrency(transaction.amount)}">$0.00</div>
+                        <div th:class="${transaction.type.name() == 'EXPENSE' ? 'transaction-amount amount-expense' : 'transaction-amount amount-income'}"
+                             th:text="${transaction.type.name() == 'EXPENSE' ? '-' : '+'} + ${#numbers.formatCurrency(transaction.amount)}">$0.00</div>
                         <div class="transaction-date" th:text="${#temporals.format(transaction.date, 'MMM dd, yyyy')}">Jan 1, 2025</div>
                     </div>
                 </div>

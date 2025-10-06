@@ -15,7 +15,9 @@ document.addEventListener('DOMContentLoaded', () => {
     // API endpoints
     const API_URL = '/api';
     const DASHBOARD_SUMMARY_ENDPOINT = `${API_URL}/dashboard/summary`;
-    const RECENT_TRANSACTIONS_ENDPOINT = `${API_URL}/dashboard/transactions`;
+    const RECENT_TRANSACTIONS_ENDPOINT = `${API_URL}/dashboard/recent-transactions`;
+
+    let financialChart = null;
 
     // Initialize page
     init();
@@ -24,286 +26,214 @@ document.addEventListener('DOMContentLoaded', () => {
      * Initialize the dashboard
      */
     function init() {
-        // Load dashboard data
-        fetchDashboardSummary();
-        fetchRecentTransactions();
+        showLoading();
+        Promise.all([
+            fetchDashboardSummary(),
+            fetchRecentTransactions()
+        ])
+        .then(() => hideLoading())
+        .catch(error => {
+            console.error('Error initializing dashboard:', error);
+            hideLoading();
+            showError('Failed to load dashboard data');
+        });
     }
 
     /**
      * Fetch dashboard summary data
      */
     function fetchDashboardSummary() {
-        fetch(DASHBOARD_SUMMARY_ENDPOINT)
+        return fetch(DASHBOARD_SUMMARY_ENDPOINT)
             .then(handleResponse)
             .then(summary => {
-                // Update the UI with the summary data
                 updateDashboardSummary(summary);
-
-                // Initialize the chart with monthly data
-                if (summary.monthlyData) {
-                    initializeChart(summary.monthlyData);
-                } else {
-                    // Sample data for testing
-                    const sampleData = generateSampleData();
-                    initializeChart(sampleData);
-                }
+                initializeChart(summary);
             })
             .catch(error => {
                 console.error('Error fetching dashboard summary:', error);
-                // Show error in UI if needed
+                showError('Failed to load summary data');
             });
     }
 
-    function generateSampleData() {
-        const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'];
-        return {
-            labels: months,
-            income: months.map(() => Math.floor(Math.random() * 5000) + 3000),
-            expenses: months.map(() => Math.floor(Math.random() * 4000) + 2000)
-        };
+    /**
+     * Fetch recent transactions
+     */
+    function fetchRecentTransactions() {
+        return fetch(RECENT_TRANSACTIONS_ENDPOINT)
+            .then(handleResponse)
+            .then(transactions => {
+                updateRecentTransactions(transactions);
+            })
+            .catch(error => {
+                console.error('Error fetching recent transactions:', error);
+                showError('Failed to load recent transactions');
+            });
     }
 
-    function initializeChart(data) {
-        const ctx = document.getElementById('financialChart').getContext('2d');
+    function initializeChart(summary) {
+        const ctx = document.getElementById('financialChart')?.getContext('2d');
+        if (!ctx) return;
 
-        if (window.financialChart) {
-            window.financialChart.destroy();
+        // Destroy existing chart if it exists
+        if (financialChart instanceof Chart) {
+            financialChart.destroy();
         }
 
-        window.financialChart = new Chart(ctx, {
-            type: 'line',
+        const monthlyIncome = summary.monthlyIncome || 0;
+        const monthlyExpenses = summary.monthlyExpenses || 0;
+        const previousMonthIncome = summary.previousMonthIncome || 0;
+        const previousMonthExpenses = summary.previousMonthExpenses || 0;
+
+        financialChart = new Chart(ctx, {
+            type: 'bar',
             data: {
-                labels: data.labels || Object.keys(data),
+                labels: ['Previous Month', 'Current Month'],
                 datasets: [
                     {
                         label: 'Income',
-                        data: data.income || Object.values(data).map(m => m.income),
-                        borderColor: 'rgba(236, 72, 153, 1)',  // Pink
-                        backgroundColor: 'rgba(236, 72, 153, 0.1)',
-                        borderWidth: 3,
-                        tension: 0.4,
-                        fill: true,
-                        pointBackgroundColor: 'rgba(236, 72, 153, 1)',
-                        pointBorderColor: 'rgba(236, 72, 153, 0.2)',
-                        pointBorderWidth: 2,
-                        pointRadius: 0,
-                        pointHoverRadius: 6,
-                        pointHoverBorderWidth: 3,
-                        pointHoverBackgroundColor: 'rgba(236, 72, 153, 1)',
-                        pointHoverBorderColor: '#fff'
+                        data: [previousMonthIncome, monthlyIncome],
+                        backgroundColor: 'rgba(16, 185, 129, 0.7)',
+                        borderColor: 'rgba(16, 185, 129, 1)',
+                        borderWidth: 1
                     },
                     {
                         label: 'Expenses',
-                        data: data.expenses || Object.values(data).map(m => m.expenses),
-                        borderColor: 'rgba(59, 130, 246, 1)',  // Blue
-                        backgroundColor: 'rgba(59, 130, 246, 0.1)',
-                        borderWidth: 3,
-                        tension: 0.4,
-                        fill: true,
-                        pointBackgroundColor: 'rgba(59, 130, 246, 1)',
-                        pointBorderColor: 'rgba(59, 130, 246, 0.2)',
-                        pointBorderWidth: 2,
-                        pointRadius: 0,
-                        pointHoverRadius: 6,
-                        pointHoverBorderWidth: 3,
-                        pointHoverBackgroundColor: 'rgba(59, 130, 246, 1)',
-                        pointHoverBorderColor: '#fff'
+                        data: [previousMonthExpenses, monthlyExpenses],
+                        backgroundColor: 'rgba(239, 68, 68, 0.7)',
+                        borderColor: 'rgba(239, 68, 68, 1)',
+                        borderWidth: 1
                     }
                 ]
             },
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
-                interaction: {
-                    intersect: false,
-                    mode: 'nearest',
-                    axis: 'x'
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            callback: value => '₹' + value.toLocaleString()
+                        }
+                    }
                 },
                 plugins: {
                     legend: {
-                        display: false
+                        position: 'top',
+                        align: 'end'
                     },
                     tooltip: {
-                        backgroundColor: 'rgba(17, 24, 39, 0.8)',
-                        titleColor: '#fff',
-                        bodyColor: '#fff',
-                        padding: 12,
-                        boxPadding: 6,
-                        usePointStyle: true,
                         callbacks: {
-                            label: function(context) {
-                                return ` ${context.dataset.label}: ${formatCurrency(context.raw)}`;
+                            label: context => {
+                                let label = context.dataset.label || '';
+                                if (label) {
+                                    label += ': ';
+                                }
+                                label += '₹' + context.parsed.y.toLocaleString();
+                                return label;
                             }
                         }
-                    }
-                },
-                scales: {
-                    x: {
-                        grid: {
-                            display: true,
-                            color: 'rgba(255, 255, 255, 0.1)',
-                            drawBorder: false,
-                            tickLength: 0
-                        },
-                        ticks: {
-                            color: 'rgba(255, 255, 255, 0.7)',
-                            font: {
-                                size: 12,
-                                weight: '300'
-                            },
-                            padding: 8
-                        }
-                    },
-                    y: {
-                        beginAtZero: true,
-                        grid: {
-                            display: true,
-                            color: 'rgba(255, 255, 255, 0.1)',
-                            drawBorder: false
-                        },
-                        ticks: {
-                            color: 'rgba(255, 255, 255, 0.7)',
-                            font: {
-                                size: 12,
-                                weight: '300'
-                            },
-                            padding: 8,
-                            callback: function(value) {
-                                return formatCurrency(value);
-                            }
-                        }
-                    }
-                },
-                animations: {
-                    tension: {
-                        duration: 1000,
-                        easing: 'easeInOutQuart',
-                        from: 0.8,
-                        to: 0.4
                     }
                 }
             }
         });
     }
 
-    /**
-     * Fetch recent transactions data
-     */
-    function fetchRecentTransactions() {
-        if (loadingIndicator) loadingIndicator.classList.remove('d-none');
-        if (noTransactionsMessage) noTransactionsMessage.classList.add('d-none');
-
-        fetch(RECENT_TRANSACTIONS_ENDPOINT)
-            .then(handleResponse)
-            .then(transactions => {
-                if (loadingIndicator) loadingIndicator.classList.add('d-none');
-
-                if (!transactions || transactions.length === 0) {
-                    if (noTransactionsMessage) noTransactionsMessage.classList.remove('d-none');
-                } else {
-                    // Display the most recent 5 transactions
-                    renderRecentTransactions(transactions.slice(0, 5));
-                }
-            })
-            .catch(error => {
-                if (loadingIndicator) loadingIndicator.classList.add('d-none');
-                console.error('Error fetching recent transactions:', error);
-                // Show error in UI if needed
-            });
-    }
-
-    /**
-     * Update dashboard summary UI
-     */
     function updateDashboardSummary(summary) {
-        if (balanceElement) {
-            balanceElement.textContent = formatCurrency(summary.monthlySavings);
-        }
-        
-        if (incomeElement) {
-            incomeElement.textContent = formatCurrency(summary.monthlyIncome);
-        }
-        
-        if (expenseElement) {
-            expenseElement.textContent = formatCurrency(summary.monthlyExpenses);
-        }
-        
-        if (savingsElement) {
-            // Use backend-provided savings
-            savingsElement.textContent = formatCurrency(summary.monthlySavings);
-        }
+        if (incomeElement) incomeElement.textContent = formatCurrency(summary.monthlyIncome);
+        if (expenseElement) expenseElement.textContent = formatCurrency(summary.monthlyExpenses);
+        if (balanceElement) balanceElement.textContent = formatCurrency(summary.monthlyIncome - summary.monthlyExpenses);
+
+        // Update change indicators
+        updateChangeIndicator('incomeChange', summary.incomeChange);
+        updateChangeIndicator('expenseChange', summary.expenseChange);
     }
 
-    /**
-     * Render recent transactions
-     */
-    function renderRecentTransactions(transactions) {
+    function updateRecentTransactions(transactions) {
         if (!recentTransactionsContainer) return;
-        
-        // Clear existing content
-        recentTransactionsContainer.innerHTML = '';
 
-        // Add each transaction as a card
-        transactions.forEach(transaction => {
-            const isIncome = transaction.type === 'INCOME';
-            const transactionCard = document.createElement('div');
-            transactionCard.className = 'card mb-2 p-2';
-            transactionCard.style = 'border-radius:1rem;';
-            
-            transactionCard.innerHTML = `
-                <div class="d-flex align-items-center">
-                    <div class="bg-${isIncome ? 'success' : 'danger'} rounded-circle d-flex align-items-center justify-content-center me-3" style="width:40px;height:40px;">
-                        <i class="fas fa-arrow-${isIncome ? 'up' : 'down'} text-white"></i>
-                    </div>
-                    <div class="flex-grow-1">
-                        <div class="fw-semibold text-white">${transaction.description || '(No Name)'}</div>
-                        <div class="text-light opacity-75" style="font-size:0.95rem;">${transaction.categoryName || 'Uncategorized'}</div>
-                        <div class="text-light opacity-75" style="font-size:0.85rem;">${formatDate(transaction.date)}</div>
-                    </div>
-                    <div class="fw-bold text-${isIncome ? 'success' : 'danger'}" style="font-size:1.1rem;">
-                        ${isIncome ? '+ ' : '- '}${formatCurrency(transaction.amount)}
-                    </div>
-                </div>
-            `;
+        if (!transactions || transactions.length === 0) {
+            showNoTransactions();
+            return;
+        }
 
-            recentTransactionsContainer.appendChild(transactionCard);
-        });
+        recentTransactionsContainer.innerHTML = transactions
+            .map(transaction => createTransactionHTML(transaction))
+            .join('');
     }
 
-    /**
-     * Format currency for display
-     */
+    function createTransactionHTML(transaction) {
+        const typeClass = transaction.type.toLowerCase() === 'income' ? 'text-green-500' : 'text-red-500';
+        const amount = transaction.type.toLowerCase() === 'income' ?
+            `+${formatCurrency(transaction.amount)}` :
+            `-${formatCurrency(transaction.amount)}`;
+
+        return `
+            <div class="transaction-item flex justify-between items-center p-3 border-b">
+                <div class="flex flex-col">
+                    <span class="font-medium">${transaction.description}</span>
+                    <span class="text-sm text-gray-500">${formatDate(transaction.date)}</span>
+                </div>
+                <span class="${typeClass} font-medium">${amount}</span>
+            </div>
+        `;
+    }
+
     function formatCurrency(amount) {
-        return new Intl.NumberFormat('en-US', {
+        return new Intl.NumberFormat('en-IN', {
             style: 'currency',
-            currency: 'USD',
-            minimumFractionDigits: 0,
-            maximumFractionDigits: 0
+            currency: 'INR'
         }).format(amount);
     }
 
-    /**
-     * Format date for display
-     */
     function formatDate(dateString) {
-        const date = new Date(dateString);
-        return new Intl.DateTimeFormat('en-US', {
-            year: 'numeric',
+        return new Date(dateString).toLocaleDateString('en-IN', {
+            day: 'numeric',
             month: 'short',
-            day: '2-digit',
-            hour: '2-digit',
-            minute: '2-digit'
-        }).format(date);
+            year: 'numeric'
+        });
     }
 
-    /**
-     * Handle API response
-     */
+    function updateChangeIndicator(elementId, changePercentage) {
+        const element = document.getElementById(elementId);
+        if (!element) return;
+
+        const isPositive = changePercentage > 0;
+        const changeClass = isPositive ? 'text-green-500' : 'text-red-500';
+        const arrowIcon = isPositive ? '↑' : '↓';
+
+        element.className = `change-indicator ${changeClass}`;
+        element.textContent = `${arrowIcon} ${Math.abs(changePercentage).toFixed(1)}%`;
+    }
+
+    function showLoading() {
+        if (loadingIndicator) loadingIndicator.classList.remove('hidden');
+    }
+
+    function hideLoading() {
+        if (loadingIndicator) loadingIndicator.classList.add('hidden');
+    }
+
+    function showError(message) {
+        // Implement error display logic
+        const errorElement = document.getElementById('errorMessage');
+        if (errorElement) {
+            errorElement.textContent = message;
+            errorElement.classList.remove('hidden');
+        }
+    }
+
+    function showNoTransactions() {
+        if (noTransactionsMessage) {
+            noTransactionsMessage.classList.remove('hidden');
+        }
+        if (recentTransactionsContainer) {
+            recentTransactionsContainer.innerHTML = '';
+        }
+    }
+
     function handleResponse(response) {
         if (!response.ok) {
-            return response.json().then(err => {
-                throw new Error(err.message || 'An error occurred');
-            });
+            throw new Error(`HTTP error! status: ${response.status}`);
         }
         return response.json();
     }

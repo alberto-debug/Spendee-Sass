@@ -2,6 +2,7 @@ package com.alberto.Spendee.sass.controller;
 
 import com.alberto.Spendee.sass.config.ViewConfig;
 import com.alberto.Spendee.sass.service.TransactionService;
+import com.alberto.Spendee.sass.dto.DashboardSummaryDto;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -27,15 +28,19 @@ public class DashboardViewController {
         viewConfig.configureView(model, "dashboard");
 
         // Get dashboard data
-        var dashboardSummary = transactionService.getDashboardSummary(userEmail);
+        DashboardSummaryDto dashboardSummary = transactionService.getDashboardSummary(userEmail);
         var recentTransactions = transactionService.getRecentTransactions(userEmail, 5); // Get last 5 transactions
 
         // Add data to the model
         model.addAttribute("totalIncome", dashboardSummary.getTotalIncome());
         model.addAttribute("totalExpenses", dashboardSummary.getTotalExpenses());
         model.addAttribute("recentTransactions", recentTransactions);
-        model.addAttribute("monthlyChange", dashboardSummary.getMonthlyChange());
-        
+
+        // Add trend indicators
+        model.addAttribute("incomeChange", dashboardSummary.getIncomeChange());
+        model.addAttribute("expenseChange", dashboardSummary.getExpenseChange());
+        model.addAttribute("monthlyBalance", dashboardSummary.getTotalIncome().subtract(dashboardSummary.getTotalExpenses()));
+
         return "dashboard/index";
     }
 }

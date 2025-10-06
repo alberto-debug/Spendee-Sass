@@ -1,4 +1,73 @@
 document.addEventListener('DOMContentLoaded', function() {
+    // Create toast container if it doesn't exist
+    if (!document.getElementById('toastContainer')) {
+        const toastContainer = document.createElement('div');
+        toastContainer.id = 'toastContainer';
+        toastContainer.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1050;
+        `;
+        document.body.appendChild(toastContainer);
+    }
+
+    function showToast(type, message) {
+        const toastContainer = document.getElementById('toastContainer');
+        const toast = document.createElement('div');
+        const toastId = 'toast-' + Date.now();
+
+        const backgroundColor = type === 'success' ? 'rgba(16, 185, 129, 0.95)' : 'rgba(239, 68, 68, 0.95)';
+        const icon = type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle';
+
+        toast.id = toastId;
+        toast.style.cssText = `
+            background: ${backgroundColor};
+            color: white;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            margin-bottom: 0.5rem;
+            min-width: 300px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            animation: slideIn 0.3s ease-out;
+        `;
+
+        toast.innerHTML = `
+            <i class="fas ${icon}"></i>
+            <span>${message}</span>
+        `;
+
+        toastContainer.appendChild(toast);
+
+        // Remove toast after 3 seconds
+        setTimeout(() => {
+            toast.style.animation = 'slideOut 0.3s ease-out';
+            setTimeout(() => {
+                toast.remove();
+            }, 300);
+        }, 3000);
+    }
+
+    // Add CSS animations
+    if (!document.getElementById('toastAnimations')) {
+        const style = document.createElement('style');
+        style.id = 'toastAnimations';
+        style.textContent = `
+            @keyframes slideIn {
+                from { transform: translateX(100%); opacity: 0; }
+                to { transform: translateX(0); opacity: 1; }
+            }
+            @keyframes slideOut {
+                from { transform: translateX(0); opacity: 1; }
+                to { transform: translateX(100%); opacity: 0; }
+            }
+        `;
+        document.head.appendChild(style);
+    }
+
     const transactionModal = new bootstrap.Modal(document.getElementById('addTransactionModal'));
     let categories = [];
 
@@ -22,13 +91,21 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
 
+        const dateStr = document.getElementById('date').value; // This is already in YYYY-MM-DD format
+        const amount = parseFloat(document.getElementById('amount').value).toFixed(2); // Ensure 2 decimal places
+        const categoryId = document.getElementById('category').value;
+
         const formData = {
-            type: document.getElementById('transactionType').value,
-            amount: parseFloat(document.getElementById('amount').value),
-            categoryId: document.getElementById('category').value,
             description: document.getElementById('description').value,
-            date: document.getElementById('date').value
+            amount: amount,
+            date: dateStr,  // Backend will parse this ISO format date
+            type: document.getElementById('transactionType').value
         };
+
+        // Only include categoryId if one was selected
+        if (categoryId) {
+            formData.categoryId = parseInt(categoryId, 10);
+        }
 
         fetch('/api/transactions', {
             method: 'POST',
@@ -38,19 +115,22 @@ document.addEventListener('DOMContentLoaded', function() {
             },
             body: JSON.stringify(formData)
         })
-        .then(response => {
-            if (!response.ok) throw new Error('Failed to add transaction');
-            return response.json();
+        .then(async response => {
+            const data = await response.json();
+            if (!response.ok) {
+                throw new Error(data.message || 'Failed to add transaction');
+            }
+            return data;
         })
         .then(data => {
             showToast('success', 'Transaction added successfully');
             transactionModal.hide();
             form.reset();
             document.getElementById('date').valueAsDate = new Date();
-            loadTransactions(); // Reload transactions list
+            loadTransactions();
         })
         .catch(error => {
-            showToast('error', 'Failed to add transaction');
+            showToast('error', error.message);
             console.error('Error:', error);
         });
     });
@@ -66,7 +146,7 @@ document.addEventListener('DOMContentLoaded', function() {
         .then(data => {
             categories = data;
             const categorySelect = document.getElementById('category');
-            categorySelect.innerHTML = '';
+            categorySelect.innerHTML = '<option value="">No Category</option>';
             data.forEach(category => {
                 const option = document.createElement('option');
                 option.value = category.id;
@@ -127,7 +207,14 @@ document.addEventListener('DOMContentLoaded', function() {
         const card = document.createElement('div');
         card.className = 'transaction-card p-3';
 
-        const category = categories.find(c => c.id === transaction.categoryId);
+        let categoryName = 'Uncategorized';
+        if (transaction.categoryId) {
+            const category = categories.find(c => c.id === transaction.categoryId);
+            if (category) {
+                categoryName = category.name;
+            }
+        }
+
         const amount = transaction.type === 'EXPENSE' ? `-$${transaction.amount.toFixed(2)}` : `+$${transaction.amount.toFixed(2)}`;
         const amountClass = transaction.type === 'EXPENSE' ? 'text-danger' : 'text-success';
 
@@ -135,7 +222,7 @@ document.addEventListener('DOMContentLoaded', function() {
             <div class="d-flex justify-content-between align-items-center">
                 <div>
                     <h6 class="mb-1">${transaction.description}</h6>
-                    <small class="text-muted">${category ? category.name : 'Unknown Category'}</small>
+                    <small class="text-muted">${categoryName}</small>
                 </div>
                 <h5 class="mb-0 ${amountClass}">${amount}</h5>
             </div>

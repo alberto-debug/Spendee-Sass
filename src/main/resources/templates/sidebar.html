@@ -1,232 +1,463 @@
 <!-- Sidebar Fragment -->
 <div th:fragment="sidebar" class="sidebar-container">
-  <style>
-    /* Sidebar container styling */
-    .sidebar-container {
-      background-color: rgba(18, 18, 18, 0.85);
-      backdrop-filter: blur(10px);
-      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-      height: calc(100vh - 70px);
-      position: fixed;
-      top: 70px;
-      border-right: 1px solid rgba(255, 255, 255, 0.05);
-      overflow-y: auto;
-      padding: 1rem 0;
-      will-change: transform; /* Improve fixed positioning performance */
-      z-index: 100; /* Ensure it stays above other content */
-      overflow-x: hidden; /* Prevent horizontal scrolling */
-      width: inherit; /* Match parent width */
-      max-width: inherit; /* Ensure it respects parent max-width */
-    }
+    <style>
+        /* Sidebar container styling */
+        .sidebar-container {
+            background-color: rgba(18, 18, 18, 0.85);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            height: calc(100vh - 70px);
+            position: fixed;
+            top: 70px;
+            border-right: 1px solid rgba(255, 255, 255, 0.05);
+            overflow-y: auto;
+            padding: 1rem 0;
+            will-change: transform; /* Improve fixed positioning performance */
+            z-index: 100; /* Ensure it stays above other content */
+            overflow-x: hidden; /* Prevent horizontal scrolling */
+            width: inherit; /* Match parent width */
+            max-width: inherit; /* Ensure it respects parent max-width */
+        }
 
-    .sidebar-container::-webkit-scrollbar {
-      width: 5px;
-    }
+        .sidebar-container::-webkit-scrollbar {
+            width: 5px;
+        }
 
-    .sidebar-container::-webkit-scrollbar-track {
-      background: rgba(255, 255, 255, 0.05);
-    }
+        .sidebar-container::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.05);
+        }
 
-    .sidebar-container::-webkit-scrollbar-thumb {
-      background: rgba(255, 255, 255, 0.1);
-      border-radius: 10px;
-    }
+        .sidebar-container::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+        }
 
-    .modern-sidebar {
-      height: 100%;
-      display: flex;
-      flex-direction: column;
-      padding: 1.5rem 1rem;
-    }
+        .modern-sidebar {
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            padding: 1.5rem 1rem;
+        }
 
-    .sidebar-user {
-      display: flex;
-      align-items: center;
-      margin-bottom: 2rem;
-      padding: 0.5rem 0.75rem;
-      border-radius: 12px;
-      background: linear-gradient(135deg, rgba(99, 102, 241, 0.1) 0%, rgba(67, 56, 202, 0.1) 100%);
-    }
+        .sidebar-user {
+            display: flex;
+            align-items: center;
+            margin-bottom: 2rem;
+            padding: 0.5rem 0.75rem;
+            border-radius: 12px;
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.1) 0%, rgba(67, 56, 202, 0.1) 100%);
+        }
 
-    .user-avatar {
-      width: 48px;
-      height: 48px;
-      background: linear-gradient(135deg, #6366F1 0%, #4338CA 100%);
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: white;
-      font-size: 1.2rem;
-      font-weight: 600;
-      box-shadow: 0 4px 10px rgba(99, 102, 241, 0.2);
-      margin-right: 12px;
-    }
+        .user-avatar {
+            width: 48px;
+            height: 48px;
+            background: linear-gradient(135deg, #6366F1 0%, #4338CA 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.2rem;
+            font-weight: 600;
+            box-shadow: 0 4px 10px rgba(99, 102, 241, 0.2);
+            margin-right: 12px;
+        }
 
-    .user-info {
-      flex: 1;
-      overflow: hidden;
-    }
+        .user-info {
+            flex: 1;
+            overflow: hidden;
+        }
 
-    .user-name {
-      font-weight: 600;
-      color: white;
-      margin-bottom: 0.2rem;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
+        .user-name {
+            font-weight: 600;
+            color: white;
+            margin-bottom: 0.2rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
 
-    .user-role {
-      font-size: 0.8rem;
-      color: rgba(255, 255, 255, 0.6);
-    }
+        .user-role {
+            font-size: 0.8rem;
+            color: rgba(255, 255, 255, 0.6);
+        }
 
-    .sidebar-menu {
-      flex: 1;
-    }
+        .sidebar-menu {
+            flex: 1;
+        }
 
-    .nav-list {
-      list-style: none;
-      padding: 0;
-      margin: 0;
-    }
+        .nav-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
 
-    .nav-item {
-      margin-bottom: 0.5rem;
-    }
+        .nav-item {
+            margin-bottom: 0.5rem;
+        }
 
-    /* Override general nav-link styles when inside sidebar */
-    .sidebar-container .nav-link {
-      display: flex;
-      align-items: center;
-      padding: 0.85rem 1rem;
-      border-radius: 10px;
-      color: rgba(255, 255, 255, 0.7);
-      transition: all 0.3s ease;
-      text-decoration: none;
-      font-weight: 500;
-    }
+        /* Override general nav-link styles when inside sidebar */
+        .sidebar-container .nav-link {
+            display: flex;
+            align-items: center;
+            padding: 0.85rem 1rem;
+            border-radius: 10px;
+            color: rgba(255, 255, 255, 0.7);
+            transition: all 0.3s ease;
+            text-decoration: none;
+            font-weight: 500;
+        }
 
-    .sidebar-container .nav-link:hover {
-      background-color: rgba(255, 255, 255, 0.05);
-      color: white;
-    }
+        .sidebar-container .nav-link:hover {
+            background-color: rgba(255, 255, 255, 0.05);
+            color: white;
+        }
 
-    .sidebar-container .nav-link.active {
-      background: linear-gradient(135deg, rgba(99, 102, 241, 0.15) 0%, rgba(67, 56, 202, 0.15) 100%);
-      color: white;
-      border-left: 3px solid #6366F1;
-    }
+        .sidebar-container .nav-link.active {
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.15) 0%, rgba(67, 56, 202, 0.15) 100%);
+            color: white;
+            border-left: 3px solid #6366F1;
+        }
 
-    .nav-icon {
-      width: 24px;
-      height: 24px;
-      margin-right: 12px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: #6366F1;
-    }
+        .nav-icon {
+            width: 24px;
+            height: 24px;
+            margin-right: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #6366F1;
+        }
 
-    .nav-link.active .nav-icon {
-      color: #6366F1;
-      background: linear-gradient(135deg, #6366F1 0%, #4338CA 100%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-    }
+        .nav-link.active .nav-icon {
+            color: #6366F1;
+            background: linear-gradient(135deg, #6366F1 0%, #4338CA 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
 
-    .sidebar-bottom {
-      padding-top: 1rem;
-      border-top: 1px solid rgba(255, 255, 255, 0.05);
-      margin-top: auto;
-    }
+        .sidebar-bottom {
+            padding-top: 1rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+            margin-top: auto;
+        }
 
-    .sidebar-bottom .nav-link {
-      color: rgba(255, 255, 255, 0.5);
-      font-size: 0.9rem;
-    }
+        .sidebar-bottom .nav-link {
+            color: rgba(255, 255, 255, 0.5);
+            font-size: 0.9rem;
+        }
 
-    .sidebar-bottom .nav-link:hover {
-      color: rgba(255, 255, 255, 0.8);
-    }
+        .sidebar-bottom .nav-link:hover {
+            color: rgba(255, 255, 255, 0.8);
+        }
 
-    /* Mobile adjustments */
-    @media (max-width: 767.98px) {
-      .modern-sidebar {
-        padding: 1rem 0.5rem;
-      }
+        /* Mobile adjustments */
+        @media (max-width: 767.98px) {
+            .modern-sidebar {
+                padding: 1rem 0.5rem;
+            }
 
-      .sidebar-container {
-        height: auto;
-        position: relative;
-        top: 0;
-        margin-bottom: 20px;
-      }
-    }
-  </style>
+            .sidebar-container {
+                height: auto;
+                position: relative;
+                top: 0;
+                margin-bottom: 20px;
+            }
+        }
+    </style>
 
-  <div class="modern-sidebar">
-    <!-- User Profile Summary -->
-    <div class="sidebar-user">
-      <div class="user-avatar">
-        <img th:if="${userPhotoUrl != null}" th:src="${userPhotoUrl}" alt="User Photo" class="rounded-circle" style="width:48px;height:48px;object-fit:cover;">
-        <span th:if="${userPhotoUrl == null}">U</span>
-      </div>
-      <div class="user-info">
-        <div class="user-name" th:text="${userFirstName != null ? userFirstName : 'User'}">User</div>
-        <div class="user-role">Personal Account</div>
-      </div>
+    <div class="modern-sidebar">
+        <!-- User Profile Summary -->
+        <div class="sidebar-user">
+            <div class="user-avatar">
+                <img th:if="${userPhotoUrl != null}" th:src="${userPhotoUrl}" alt="User Photo" class="rounded-circle" style="width:48px;height:48px;object-fit:cover;">
+                <span th:if="${userPhotoUrl == null}">U</span>
+            </div>
+            <div class="user-info">
+                <div class="user-name" th:text="${userFirstName != null ? userFirstName : 'User'}">User</div>
+                <div class="user-role">Personal Account</div>
+            </div>
+        </div>
+
+        <!-- Navigation Menu -->
+        <div class="sidebar-menu">
+            <ul class="nav-list">
+                <li class="nav-item">
+                    <a href="/dashboard" class="nav-link" th:classappend="${activePage == 'dashboard' ? 'active' : ''}">
+                        <div class="nav-icon"><i class="fas fa-home"></i></div>
+                        <span>Dashboard</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="/transactions" class="nav-link" th:classappend="${activePage == 'transactions' ? 'active' : ''}">
+                        <div class="nav-icon"><i class="fas fa-exchange-alt"></i></div>
+                        <span>Transactions</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="/accounts" class="nav-link" th:classappend="${activePage == 'accounts' ? 'active' : ''}">
+                        <div class="nav-icon"><i class="fas fa-wallet"></i></div>
+                        <span>Accounts</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="/categories" class="nav-link" th:classappend="${activePage == 'categories' ? 'active' : ''}">
+                        <div class="nav-icon"><i class="fas fa-tags"></i></div>
+                        <span>Categories</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="/reports" class="nav-link" th:classappend="${activePage == 'reports' ? 'active' : ''}">
+                        <div class="nav-icon"><i class="fas fa-chart-pie"></i></div>
+                        <span>Reports</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="/settings" class="nav-link" th:classappend="${activePage == 'settings' ? 'active' : ''}">
+                        <div class="nav-icon"><i class="fas fa-cog"></i></div>
+                        <span>Settings</span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+
+        <!-- Sidebar Bottom Section -->
+        <div class="sidebar-bottom">
+            <a href="/logout" class="nav-link">
+                <div class="nav-icon"><i class="fas fa-sign-out-alt"></i></div>
+                <span>Logout</span>
+            </a>
+        </div>
     </div>
+</div><!-- Sidebar Fragment -->
+<div th:fragment="sidebar" class="sidebar-container">
+    <style>
+        /* Sidebar container styling */
+        .sidebar-container {
+            background-color: rgba(18, 18, 18, 0.85);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            height: calc(100vh - 70px);
+            position: fixed;
+            top: 70px;
+            border-right: 1px solid rgba(255, 255, 255, 0.05);
+            overflow-y: auto;
+            padding: 1rem 0;
+            will-change: transform; /* Improve fixed positioning performance */
+            z-index: 100; /* Ensure it stays above other content */
+            overflow-x: hidden; /* Prevent horizontal scrolling */
+            width: inherit; /* Match parent width */
+            max-width: inherit; /* Ensure it respects parent max-width */
+        }
 
-    <!-- Navigation Menu -->
-    <div class="sidebar-menu">
-      <ul class="nav-list">
-        <li class="nav-item">
-          <a href="/dashboard" class="nav-link" th:classappend="${activePage == 'dashboard' ? 'active' : ''}">
-            <div class="nav-icon"><i class="fas fa-home"></i></div>
-            <span>Dashboard</span>
-          </a>
-        </li>
-        <li class="nav-item">
-          <a href="/transactions" class="nav-link" th:classappend="${activePage == 'transactions' ? 'active' : ''}">
-            <div class="nav-icon"><i class="fas fa-exchange-alt"></i></div>
-            <span>Transactions</span>
-          </a>
-        </li>
-        <li class="nav-item">
-          <a href="/accounts" class="nav-link" th:classappend="${activePage == 'accounts' ? 'active' : ''}">
-            <div class="nav-icon"><i class="fas fa-wallet"></i></div>
-            <span>Accounts</span>
-          </a>
-        </li>
-        <li class="nav-item">
-          <a href="/categories" class="nav-link" th:classappend="${activePage == 'categories' ? 'active' : ''}">
-            <div class="nav-icon"><i class="fas fa-tags"></i></div>
-            <span>Categories</span>
-          </a>
-        </li>
-        <li class="nav-item">
-          <a href="/reports" class="nav-link" th:classappend="${activePage == 'reports' ? 'active' : ''}">
-            <div class="nav-icon"><i class="fas fa-chart-pie"></i></div>
-            <span>Reports</span>
-          </a>
-        </li>
-        <li class="nav-item">
-          <a href="/settings" class="nav-link" th:classappend="${activePage == 'settings' ? 'active' : ''}">
-            <div class="nav-icon"><i class="fas fa-cog"></i></div>
-            <span>Settings</span>
-          </a>
-        </li>
-      </ul>
-    </div>
+        .sidebar-container::-webkit-scrollbar {
+            width: 5px;
+        }
 
-    <!-- Sidebar Bottom Section -->
-    <div class="sidebar-bottom">
-      <a href="/logout" class="nav-link">
-        <div class="nav-icon"><i class="fas fa-sign-out-alt"></i></div>
-        <span>Logout</span>
-      </a>
+        .sidebar-container::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .sidebar-container::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+        }
+
+        .modern-sidebar {
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            padding: 1.5rem 1rem;
+        }
+
+        .sidebar-user {
+            display: flex;
+            align-items: center;
+            margin-bottom: 2rem;
+            padding: 0.5rem 0.75rem;
+            border-radius: 12px;
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.1) 0%, rgba(67, 56, 202, 0.1) 100%);
+        }
+
+        .user-avatar {
+            width: 48px;
+            height: 48px;
+            background: linear-gradient(135deg, #6366F1 0%, #4338CA 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.2rem;
+            font-weight: 600;
+            box-shadow: 0 4px 10px rgba(99, 102, 241, 0.2);
+            margin-right: 12px;
+        }
+
+        .user-info {
+            flex: 1;
+            overflow: hidden;
+        }
+
+        .user-name {
+            font-weight: 600;
+            color: white;
+            margin-bottom: 0.2rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .user-role {
+            font-size: 0.8rem;
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        .sidebar-menu {
+            flex: 1;
+        }
+
+        .nav-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .nav-item {
+            margin-bottom: 0.5rem;
+        }
+
+        /* Override general nav-link styles when inside sidebar */
+        .sidebar-container .nav-link {
+            display: flex;
+            align-items: center;
+            padding: 0.85rem 1rem;
+            border-radius: 10px;
+            color: rgba(255, 255, 255, 0.7);
+            transition: all 0.3s ease;
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .sidebar-container .nav-link:hover {
+            background-color: rgba(255, 255, 255, 0.05);
+            color: white;
+        }
+
+        .sidebar-container .nav-link.active {
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.15) 0%, rgba(67, 56, 202, 0.15) 100%);
+            color: white;
+            border-left: 3px solid #6366F1;
+        }
+
+        .nav-icon {
+            width: 24px;
+            height: 24px;
+            margin-right: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #6366F1;
+        }
+
+        .nav-link.active .nav-icon {
+            color: #6366F1;
+            background: linear-gradient(135deg, #6366F1 0%, #4338CA 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .sidebar-bottom {
+            padding-top: 1rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+            margin-top: auto;
+        }
+
+        .sidebar-bottom .nav-link {
+            color: rgba(255, 255, 255, 0.5);
+            font-size: 0.9rem;
+        }
+
+        .sidebar-bottom .nav-link:hover {
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        /* Mobile adjustments */
+        @media (max-width: 767.98px) {
+            .modern-sidebar {
+                padding: 1rem 0.5rem;
+            }
+
+            .sidebar-container {
+                height: auto;
+                position: relative;
+                top: 0;
+                margin-bottom: 20px;
+            }
+        }
+    </style>
+
+    <div class="modern-sidebar">
+        <!-- User Profile Summary -->
+        <div class="sidebar-user">
+            <div class="user-avatar">
+                <img th:if="${userPhotoUrl != null}" th:src="${userPhotoUrl}" alt="User Photo" class="rounded-circle" style="width:48px;height:48px;object-fit:cover;">
+                <span th:if="${userPhotoUrl == null}">U</span>
+            </div>
+            <div class="user-info">
+                <div class="user-name" th:text="${userFirstName != null ? userFirstName : 'User'}">User</div>
+                <div class="user-role">Personal Account</div>
+            </div>
+        </div>
+
+        <!-- Navigation Menu -->
+        <div class="sidebar-menu">
+            <ul class="nav-list">
+                <li class="nav-item">
+                    <a href="/dashboard" class="nav-link" th:classappend="${activePage == 'dashboard' ? 'active' : ''}">
+                        <div class="nav-icon"><i class="fas fa-home"></i></div>
+                        <span>Dashboard</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="/transactions" class="nav-link" th:classappend="${activePage == 'transactions' ? 'active' : ''}">
+                        <div class="nav-icon"><i class="fas fa-exchange-alt"></i></div>
+                        <span>Transactions</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="/accounts" class="nav-link" th:classappend="${activePage == 'accounts' ? 'active' : ''}">
+                        <div class="nav-icon"><i class="fas fa-wallet"></i></div>
+                        <span>Accounts</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="/categories" class="nav-link" th:classappend="${activePage == 'categories' ? 'active' : ''}">
+                        <div class="nav-icon"><i class="fas fa-tags"></i></div>
+                        <span>Categories</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="/reports" class="nav-link" th:classappend="${activePage == 'reports' ? 'active' : ''}">
+                        <div class="nav-icon"><i class="fas fa-chart-pie"></i></div>
+                        <span>Reports</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="/settings" class="nav-link" th:classappend="${activePage == 'settings' ? 'active' : ''}">
+                        <div class="nav-icon"><i class="fas fa-cog"></i></div>
+                        <span>Settings</span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+
+        <!-- Sidebar Bottom Section -->
+        <div class="sidebar-bottom">
+            <a href="/logout" class="nav-link">
+                <div class="nav-icon"><i class="fas fa-sign-out-alt"></i></div>
+                <span>Logout</span>
+            </a>
+        </div>
     </div>
-  </div>
 </div>

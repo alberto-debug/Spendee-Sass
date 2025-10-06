@@ -2,12 +2,24 @@
 <div th:fragment="navbar">
     <style>
         /* Custom hover for navbar dropdown items */
+        .navbar {
+            position: fixed;
+            top: 0;
+            right: 0;
+            left: 0;
+            z-index: 1030;
+            /* Remove margin to place navbar at the very top */
+        }
+        /* Ensures content doesn't hide behind the navbar */
+        body {
+            padding-top: 73px; /* Adjusted padding since we removed the margin */
+        }
         .navbar .dropdown-menu .dropdown-item:hover {
             background: linear-gradient(135deg, #6366F1 0%, #4338CA 100%);
             color: #fff !important;
         }
     </style>
-    <nav class="navbar navbar-dark py-2 px-3" style="border-radius: 1rem; background: rgba(18, 18, 18, 0.85); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.05);">
+    <nav class="navbar navbar-dark py-2 px-3" style="background: rgba(18, 18, 18, 0.95); backdrop-filter: blur(10px); border-bottom: 1px solid rgba(255, 255, 255, 0.05);">
         <div class="container-fluid">
             <!-- Brand/logo on the left -->
             <a class="navbar-brand fw-semibold" href="/dashboard">

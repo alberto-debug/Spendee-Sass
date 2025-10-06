@@ -1,264 +1,158 @@
 <!DOCTYPE html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/base :: html(
+        ~{::title},
+        ~{::section},
+        ~{::styles},
+        ~{::scripts}
+      )}">
 <head>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Spendee - Settings</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="icon" href="/images/favicon.ico" type="image/x-icon">
-    <link rel="stylesheet" href="/css/toast.css">
-    <script src="/js/auth-interceptor.js"></script>
-    <script src="/js/livereload.js"></script>
-    <style>
-        html, body {
-            min-height: 100vh;
-            height: 100%;
-            overflow-x: hidden; /* Prevent horizontal scrolling */
-        }
-
-        body {
-            font-family: 'Poppins', sans-serif;
-            background-color: #0a0a0a;
-            background-image: linear-gradient(125deg, #121212 0%, #000000 70%);
-            color: #fff;
-            padding-bottom: 60px; /* Space for mobile nav */
-            display: flex;
-            flex-direction: column;
-        }
-
-        .main-container {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .navbar-brand {
-            font-weight: 600;
-            font-size: 1.5rem;
-            color: #fff;
-        }
-
-        .navbar-brand i {
-            background: linear-gradient(135deg, #6366F1 0%, #4338CA 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            font-size: 1.6rem;
-            margin-right: 8px;
-        }
-
-        /* Ensure all text (including headings) renders white on this page */
-        :root {
-            --bs-body-color: #ffffff;
-            --bs-heading-color: #ffffff;
-        }
-
-        .settings-container {
-            background: rgba(25,25,25,0.95);
-            border-radius: 18px;
-            box-shadow: 0 8px 32px rgba(0,0,0,0.4);
-            padding: 32px 28px;
-            border: 1px solid rgba(255,255,255,0.07);
-            margin-bottom: 20px;
-        }
-
-        .settings-title {
-            text-align: center;
-            margin-bottom: 32px;
-            color: #6366F1;
-            font-size: 2rem;
-            font-weight: 600;
-        }
-
-        .form-label {
-            color: #c7d2fe;
-            font-weight: 500;
-        }
-
-        .form-control {
-            background: rgba(255,255,255,0.07);
-            border: 1px solid rgba(255,255,255,0.1);
-            color: #fff;
-            border-radius: 8px;
-            padding: 10px 15px;
-            width: 100%;
-        }
-
-        .form-control:focus {
-            background: rgba(255,255,255,0.1);
-            border-color: #6366F1;
-            box-shadow: 0 0 0 3px rgba(99,102,241,0.15);
-        }
-
-        .settings-section {
-            margin-bottom: 24px;
-        }
-
-        .btn-primary {
-            background: linear-gradient(135deg, #6366F1 0%, #4338CA 100%);
-            border: none;
-            border-radius: 8px;
-            padding: 10px 20px;
-            font-weight: 500;
-            box-shadow: 0 4px 12px rgba(99,102,241,0.2);
-            transition: all 0.3s ease;
-        }
-
-        .btn-primary:hover {
-            background: linear-gradient(135deg, #4F46E5 0%, #3730A3 100%);
-            transform: translateY(-2px);
-            box-shadow: 0 6px 16px rgba(79,70,229,0.3);
-        }
-
-        .toggle-switch {
-            position: relative;
-            display: inline-block;
-            width: 48px;
-            height: 24px;
-        }
-
-        .toggle-switch input {
-            opacity: 0;
-            width: 0;
-            height: 0;
-        }
-
-        .slider {
-            position: absolute;
-            cursor: pointer;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background: #4338CA;
-            border-radius: 24px;
-            transition: .4s;
-        }
-
-        .slider:before {
-            position: absolute;
-            content: "";
-            height: 18px;
-            width: 18px;
-            left: 3px;
-            bottom: 3px;
-            background: #fff;
-            border-radius: 50%;
-            transition: .4s;
-        }
-
-        input:checked + .slider {
-            background: #6366F1;
-        }
-
-        input:checked + .slider:before {
-            transform: translateX(24px);
-        }
-    </style>
+    <title>Settings</title>
+    <th:block th:fragment="styles">
+        <style>
+            .settings-card {
+                background: rgba(18, 18, 18, 0.85);
+                backdrop-filter: blur(10px);
+                border: 1px solid rgba(255, 255, 255, 0.05);
+                border-radius: 1rem;
+                padding: 1.5rem;
+                margin-bottom: 2rem;
+                max-width: 800px;
+                margin-left: auto;
+                margin-right: auto;
+            }
+            .settings-container {
+                max-width: 800px;
+                margin: 0 auto;
+                padding: 2rem 1rem;
+            }
+            .form-control {
+                background: rgba(255, 255, 255, 0.07);
+                border: 1px solid rgba(255, 255, 255, 0.1);
+                color: white;
+                border-radius: 8px;
+            }
+            .form-control:focus {
+                background: rgba(255, 255, 255, 0.1);
+                border-color: rgba(255, 255, 255, 0.2);
+                box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
+                color: white;
+            }
+            .form-label {
+                color: rgba(255, 255, 255, 0.8);
+                font-weight: 500;
+            }
+            .page-title {
+                text-align: center;
+                margin-bottom: 2rem;
+            }
+            .profile-photo-container {
+                text-align: center;
+                margin-bottom: 2rem;
+            }
+            .profile-photo-preview {
+                width: 120px;
+                height: 120px;
+                margin: 0 auto 1rem;
+                display: block;
+            }
+            .photo-input-container {
+                max-width: 300px;
+                margin: 0 auto;
+            }
+        </style>
+    </th:block>
 </head>
 <body>
-    <!-- Include navbar fragment using modern syntax -->
-    <header class="sticky-navbar">
-        <div th:replace="~{navbar :: navbar}"></div>
-    </header>
+    <section>
+        <div class="settings-container">
+            <h2 class="page-title">Settings</h2>
 
-    <div class="main-container">
-        <div class="row g-0 w-100"> <!-- Added g-0 to remove gutters and w-100 to ensure full width -->
-            <!-- Traditional Vertical Sidebar on the side - matching dashboard structure exactly -->
-            <div class="col-md-3 col-lg-2 p-0">
-                <div th:replace="~{sidebar :: sidebar(activePage='settings')}"></div>
-            </div>
-
-            <!-- Main content -->
-            <div class="col-md-9 col-lg-10 py-4 main-content">
-                <!-- Use the same row/column structure as dashboard for centering -->
-                <div class="row">
-                    <div class="col-12 col-lg-8 mx-auto">
-                        <div class="settings-container">
-                            <div class="settings-title"><i class="fas fa-cog me-2"></i>Settings</div>
-                            <form id="settings-form">
-                                <div class="settings-section">
-                                    <label class="form-label" for="settingsFirstName">First Name</label>
-                                    <input type="text" class="form-control" id="settingsFirstName" name="firstName" th:value="${userFirstName}" required>
-                                </div>
-                                <div class="settings-section">
-                                    <label class="form-label" for="settingsLastName">Last Name</label>
-                                    <input type="text" class="form-control" id="settingsLastName" name="lastName" th:value="${userLastName}" required>
-                                </div>
-                                <div class="settings-section">
-                                    <label class="form-label" for="settingsEmail">Email</label>
-                                    <input type="email" class="form-control" id="settingsEmail" name="email" th:value="${userEmail}" required>
-                                </div>
-                                <div class="settings-section">
-                                    <label class="form-label" for="settingsPassword">Change Password</label>
-                                    <input type="password" class="form-control" id="settingsPassword" name="password" placeholder="New password (leave blank to keep current)">
-                                </div>
-                                <div class="settings-section" style="display:flex; align-items:center; justify-content:space-between;">
-                                    <label class="form-label" style="margin-bottom:0;">Dark Mode</label>
-                                    <label class="toggle-switch">
-                                        <input type="checkbox" id="themeToggle">
-                                        <span class="slider"></span>
-                                    </label>
-                                </div>
-                                <div class="settings-section" style="margin-bottom:32px;">
-                                    <label class="form-label">Notifications</label>
-                                    <div style="margin-top:8px;">
-                                        <input type="checkbox" id="emailNotifications" name="emailNotifications">
-                                        <label for="emailNotifications">Email notifications</label>
-                                    </div>
-                                    <div>
-                                        <input type="checkbox" id="toastNotifications" name="toastNotifications" checked>
-                                        <label for="toastNotifications">Toast notifications</label>
-                                    </div>
-                                </div>
-                                <button type="submit" class="btn btn-primary w-100 mt-2">Save Changes</button>
-                            </form>
+            <!-- Profile Settings -->
+            <div class="settings-card">
+                <h4 class="mb-4 text-center">Profile Settings</h4>
+                <form id="profileForm">
+                    <div class="profile-photo-container">
+                        <img id="profile-photo-preview" src="/api/user/photo" alt="Profile Photo"
+                             class="rounded-circle profile-photo-preview"
+                             style="object-fit:cover; border: 3px solid rgba(99, 102, 241, 0.3); box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);">
+                        <div class="photo-input-container">
+                            <input type="file" class="form-control" id="profilePhoto" name="photo" accept="image/*">
                         </div>
                     </div>
-                </div>
+                    <div class="row justify-content-center">
+                        <div class="col-md-6 mb-3">
+                            <label for="firstName" class="form-label">First Name</label>
+                            <input type="text" class="form-control" id="firstName" name="firstName" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="lastName" class="form-label">Last Name</label>
+                            <input type="text" class="form-control" id="lastName" name="lastName" required>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="email" class="form-label">Email</label>
+                        <input type="email" class="form-control" id="email" name="email" required>
+                    </div>
+                    <div class="text-center">
+                        <button type="submit" class="btn btn-primary">Save Profile Changes</button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Password Settings -->
+            <div class="settings-card">
+                <h4 class="mb-4 text-center">Change Password</h4>
+                <form id="passwordForm">
+                    <div class="mb-3">
+                        <label for="currentPassword" class="form-label">Current Password</label>
+                        <input type="password" class="form-control" id="currentPassword" name="currentPassword" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="newPassword" class="form-label">New Password</label>
+                        <input type="password" class="form-control" id="newPassword" name="newPassword" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="confirmPassword" class="form-label">Confirm New Password</label>
+                        <input type="password" class="form-control" id="confirmPassword" name="confirmPassword" required>
+                    </div>
+                    <div class="text-center">
+                        <button type="submit" class="btn btn-primary">Change Password</button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Preferences -->
+            <div class="settings-card">
+                <h4 class="mb-4 text-center">Preferences</h4>
+                <form id="preferencesForm">
+                    <div class="mb-3">
+                        <label for="currency" class="form-label">Default Currency</label>
+                        <select class="form-control" id="currency" name="currency">
+                            <option value="USD">USD - US Dollar</option>
+                            <option value="EUR">EUR - Euro</option>
+                            <option value="GBP">GBP - British Pound</option>
+                            <option value="JPY">JPY - Japanese Yen</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="dateFormat" class="form-label">Date Format</label>
+                        <select class="form-control" id="dateFormat" name="dateFormat">
+                            <option value="MM/DD/YYYY">MM/DD/YYYY</option>
+                            <option value="DD/MM/YYYY">DD/MM/YYYY</option>
+                            <option value="YYYY-MM-DD">YYYY-MM-DD</option>
+                        </select>
+                    </div>
+                    <div class="text-center">
+                        <button type="submit" class="btn btn-primary">Save Preferences</button>
+                    </div>
+                </form>
             </div>
         </div>
-    </div>
+    </section>
 
-    <!-- Include profile modal fragment using modern syntax -->
-    <div th:replace="~{navbar :: profileModal}"></div>
-
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="/js/notify.js"></script>
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            // Theme toggle
-            const themeToggle = document.getElementById('themeToggle');
-            themeToggle.checked = localStorage.getItem('theme') === 'dark';
-            themeToggle.addEventListener('change', function() {
-                if (themeToggle.checked) {
-                    localStorage.setItem('theme', 'dark');
-                    document.body.style.background = '#18181b';
-                } else {
-                    localStorage.setItem('theme', 'light');
-                    document.body.style.background = '#f3f4f6';
-                }
-            });
-
-            // Settings form submit
-            document.getElementById('settings-form').addEventListener('submit', function(e) {
-                e.preventDefault();
-                const formData = new FormData(this);
-
-                fetch('/settings/api/user/update', {
-                    method: 'POST',
-                    headers: { 'Authorization': 'Bearer ' + localStorage.getItem('jwt_token') },
-                    body: formData
-                })
-                .then(res => res.json())
-                .then(data => {
-                    if (data.success) {
-                        notify('Settings updated successfully!', 'success');
-                        setTimeout(() => window.location.reload(), 1200);
-                    } else {
-                        notify('Error updating settings: ' + (data.message || 'Unknown error'), 'error');
-                    }
-                })
-                .catch(() => notify('Failed to update settings: Network error', 'error'));
-            });
-        });
-    </script>
+    <th:block th:fragment="scripts">
+        <script src="/js/settings.js"></script>
+    </th:block>
 </body>
 </html>

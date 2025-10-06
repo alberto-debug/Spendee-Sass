@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" th:fragment="html(title, section, styles, scripts)">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spendee - <th:block th:replace="${title}">Page Title</th:block></title>
+    <!-- Common CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="icon" href="/images/favicon.ico" type="image/x-icon">
+    <link rel="stylesheet" th:href="@{/css/toast.css}">
+
+    <!-- Base Styles -->
+    <style>
+        html, body {
+            min-height: 100vh;
+            height: 100%;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #0a0a0a;
+
+            color: #fff;
+            padding-bottom: 60px;
+            display: flex;
+            flex-direction: column;
+            overflow-x: hidden;
+        }
+    </style>
+
+    <!-- Page specific styles -->
+    <th:block th:replace="${styles}"></th:block>
+</head>
+<body>
+    <!-- Navbar -->
+    <th:block th:replace="~{navbar :: navbar}"></th:block>
+    <!-- Profile Modal -->
+    <th:block th:replace="~{navbar :: profileModal}"></th:block>
+
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Sidebar -->
+            <div class="col-md-3 col-lg-2 d-none d-md-block">
+                <th:block th:replace="~{sidebar :: sidebar}"></th:block>
+            </div>
+
+            <!-- Main Content -->
+            <div class="col-md-9 col-lg-10 ms-sm-auto px-4">
+                <th:block th:replace="${section}"></th:block>
+            </div>
+        </div>
+    </div>
+
+    <!-- Common Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script th:src="@{/js/notify.js}"></script>
+    <script th:src="@{/js/toast.js}"></script>
+
+    <!-- Page specific scripts -->
+    <th:block th:replace="${scripts}"></th:block>
+</body>
+</html>

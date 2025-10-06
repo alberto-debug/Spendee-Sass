@@ -18,12 +18,6 @@ public class HomeController {
         return "redirect:/auth/login";
     }
 
-    @GetMapping("/dashboard")
-    public String dashboard(Model model) {
-        viewConfig.configureView(model, "dashboard");
-        return "dashboard/index";
-    }
-
     @GetMapping("/admin/dashboard")
     public String adminDashboard(Model model) {
         viewConfig.configureView(model, "admin");

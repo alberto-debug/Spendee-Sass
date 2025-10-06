@@ -48,36 +48,38 @@ public class TransactionService {
         // Calculate monthly totals
         BigDecimal monthlyExpenses = transactionRepository.sumAmountByUserAndTypeAndDateBetween(
                 user, TransactionType.EXPENSE, firstDay, lastDay) != null ? 
-                transactionRepository.sumAmountByUserAndTypeAndDateBetween(
-                user, TransactionType.EXPENSE, firstDay, lastDay) : BigDecimal.ZERO;
-                
+                transactionRepository.sumAmountByUserAndTypeAndDateBetween(user, TransactionType.EXPENSE, firstDay, lastDay) :
+                BigDecimal.ZERO;
+
         BigDecimal monthlyIncome = transactionRepository.sumAmountByUserAndTypeAndDateBetween(
                 user, TransactionType.INCOME, firstDay, lastDay) != null ?
-                transactionRepository.sumAmountByUserAndTypeAndDateBetween(
-                user, TransactionType.INCOME, firstDay, lastDay) : BigDecimal.ZERO;
-                
-        BigDecimal monthlySavings = monthlyIncome.subtract(monthlyExpenses);
-        
-        // Get transaction count
-        Long transactionCount = transactionRepository.countTransactionsByUser(user);
-        
-        // Get recent transactions
-        List<Transaction> recentTransactions = transactionRepository.findByUserOrderByDateDesc(user)
-                .stream()
-                .limit(5)
-                .toList();
+                transactionRepository.sumAmountByUserAndTypeAndDateBetween(user, TransactionType.INCOME, firstDay, lastDay) :
+                BigDecimal.ZERO;
 
-        List<TransactionDto> recentTransactionDtos = recentTransactions.stream()
-                .map(this::convertToDto)
-                .toList();
+        // Calculate previous month totals
+        YearMonth previousMonth = currentMonth.minusMonths(1);
+        LocalDate previousFirstDay = previousMonth.atDay(1);
+        LocalDate previousLastDay = previousMonth.atEndOfMonth();
 
-        // Build and return the summary DTO
+        BigDecimal previousMonthlyExpenses = transactionRepository.sumAmountByUserAndTypeAndDateBetween(
+                user, TransactionType.EXPENSE, previousFirstDay, previousLastDay) != null ?
+                transactionRepository.sumAmountByUserAndTypeAndDateBetween(user, TransactionType.EXPENSE, previousFirstDay, previousLastDay) :
+                BigDecimal.ZERO;
+
+        BigDecimal previousMonthlyIncome = transactionRepository.sumAmountByUserAndTypeAndDateBetween(
+                user, TransactionType.INCOME, previousFirstDay, previousLastDay) != null ?
+                transactionRepository.sumAmountByUserAndTypeAndDateBetween(user, TransactionType.INCOME, previousFirstDay, previousLastDay) :
+                BigDecimal.ZERO;
+
+        // Calculate month-over-month changes
+        double expenseChange = calculatePercentageChange(previousMonthlyExpenses, monthlyExpenses);
+        double incomeChange = calculatePercentageChange(previousMonthlyIncome, monthlyIncome);
+
         return new DashboardSummaryDto(
-                monthlyExpenses,
                 monthlyIncome,
-                monthlySavings,
-                transactionCount,
-                recentTransactionDtos
+                monthlyExpenses,
+                incomeChange,
+                expenseChange
         );
     }
     
@@ -136,6 +138,30 @@ public class TransactionService {
             throw new RuntimeException("Unauthorized to delete this transaction");
         }
         transactionRepository.deleteById(id);
+    }
+
+    /**
+     * Get recent transactions for a user
+     */
+    public List<TransactionDto> getRecentTransactions(String email, int limit) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        return transactionRepository.findByUserOrderByDateDesc(user)
+                .stream()
+                .limit(limit)
+                .map(this::convertToDto)
+                .collect(Collectors.toList());
+    }
+
+    private double calculatePercentageChange(BigDecimal oldValue, BigDecimal newValue) {
+        if (oldValue.equals(BigDecimal.ZERO)) {
+            return newValue.equals(BigDecimal.ZERO) ? 0.0 : 100.0;
+        }
+        return newValue.subtract(oldValue)
+                .multiply(BigDecimal.valueOf(100))
+                .divide(oldValue.abs(), 2, BigDecimal.ROUND_HALF_UP)
+                .doubleValue();
     }
 
     /**

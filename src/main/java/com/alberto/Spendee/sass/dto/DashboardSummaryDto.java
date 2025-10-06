@@ -1,66 +1,44 @@
 package com.alberto.Spendee.sass.dto;
 
 import java.math.BigDecimal;
-import java.util.List;
 
 public class DashboardSummaryDto {
+    private BigDecimal totalIncome;
+    private BigDecimal totalExpenses;
+    private double incomeChange;
+    private double expenseChange;
 
-    private BigDecimal monthlyExpenses;
-    private BigDecimal monthlyIncome;
-    private BigDecimal monthlySavings;
-    private Long transactionCount;
-    private List<TransactionDto> recentTransactions;
-
-    public DashboardSummaryDto() {
+    public DashboardSummaryDto(BigDecimal totalIncome, BigDecimal totalExpenses, double incomeChange, double expenseChange) {
+        this.totalIncome = totalIncome != null ? totalIncome : BigDecimal.ZERO;
+        this.totalExpenses = totalExpenses != null ? totalExpenses : BigDecimal.ZERO;
+        this.incomeChange = incomeChange;
+        this.expenseChange = expenseChange;
     }
 
-    public DashboardSummaryDto(BigDecimal monthlyExpenses, BigDecimal monthlyIncome, 
-                              BigDecimal monthlySavings, Long transactionCount,
-                              List<TransactionDto> recentTransactions) {
-        this.monthlyExpenses = monthlyExpenses;
-        this.monthlyIncome = monthlyIncome;
-        this.monthlySavings = monthlySavings;
-        this.transactionCount = transactionCount;
-        this.recentTransactions = recentTransactions;
+    public BigDecimal getTotalIncome() {
+        return totalIncome;
     }
 
-    public BigDecimal getMonthlyExpenses() {
-        return monthlyExpenses;
+    public BigDecimal getTotalExpenses() {
+        return totalExpenses;
     }
 
-    public void setMonthlyExpenses(BigDecimal monthlyExpenses) {
-        this.monthlyExpenses = monthlyExpenses;
+    public double getIncomeChange() {
+        return incomeChange;
     }
 
-    public BigDecimal getMonthlyIncome() {
-        return monthlyIncome;
+    public double getExpenseChange() {
+        return expenseChange;
     }
 
-    public void setMonthlyIncome(BigDecimal monthlyIncome) {
-        this.monthlyIncome = monthlyIncome;
+    public BigDecimal getBalance() {
+        return totalIncome.subtract(totalExpenses);
     }
 
-    public BigDecimal getMonthlySavings() {
-        return monthlySavings;
-    }
-
-    public void setMonthlySavings(BigDecimal monthlySavings) {
-        this.monthlySavings = monthlySavings;
-    }
-
-    public Long getTransactionCount() {
-        return transactionCount;
-    }
-
-    public void setTransactionCount(Long transactionCount) {
-        this.transactionCount = transactionCount;
-    }
-
-    public List<TransactionDto> getRecentTransactions() {
-        return recentTransactions;
-    }
-
-    public void setRecentTransactions(List<TransactionDto> recentTransactions) {
-        this.recentTransactions = recentTransactions;
+    public double getMonthlyChange() {
+        if (totalIncome.compareTo(BigDecimal.ZERO) == 0 && totalExpenses.compareTo(BigDecimal.ZERO) == 0) {
+            return 0.0;
+        }
+        return incomeChange - expenseChange;
     }
 }

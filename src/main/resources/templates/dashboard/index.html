@@ -10,17 +10,253 @@
     <title>Dashboard</title>
     <th:block th:fragment="styles">
         <style>
+            .dashboard-header {
+                margin-bottom: 2rem;
+            }
+
+            .stats-container {
+                margin-bottom: 2.5rem;
+                display: flex;
+                justify-content: center;
+                gap: 1.5rem;
+            }
+
+            /* Main Balance Card */
+            .balance-card {
+                background: linear-gradient(135deg, #6366F1 0%, #4338CA 100%);
+                border-radius: 1.5rem;
+                padding: 2rem;
+                color: white;
+                box-shadow: 0 10px 25px rgba(99, 102, 241, 0.3);
+                margin-bottom: 2rem;
+                position: relative;
+                overflow: hidden;
+            }
+
+            .balance-card::before {
+                content: '';
+                position: absolute;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background: url('data:image/svg+xml,<svg width="100" height="100" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><path d="M0 0 L100 100" stroke="white" stroke-width="0.5" stroke-opacity="0.1"/></svg>') repeat;
+                opacity: 0.1;
+            }
+
+            .balance-label {
+                font-size: 1.1rem;
+                font-weight: 500;
+                opacity: 0.9;
+                margin-bottom: 0.5rem;
+            }
+
+            .balance-amount {
+                font-size: 2.5rem;
+                font-weight: 700;
+                margin-bottom: 1rem;
+                letter-spacing: -0.5px;
+            }
+
+            .balance-trend {
+                font-size: 0.9rem;
+                opacity: 0.9;
+            }
+
+            /* Stats Cards - Updated modern design */
             .stat-card {
-                background: rgba(18, 18, 18, 0.85);
+                background: rgba(255, 255, 255, 0.8);
                 backdrop-filter: blur(10px);
-                border: 1px solid rgba(255, 255, 255, 0.05);
                 border-radius: 1rem;
                 padding: 1.5rem;
                 height: 100%;
-                transition: transform 0.2s;
+                transition: all 0.3s ease;
+                border: 1px solid rgba(0, 0, 0, 0.1);
+                box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+                width: 280px;
+                position: relative;
+                overflow: hidden;
             }
+
+            .stat-card.income {
+                background: linear-gradient(145deg, rgba(16, 185, 129, 0.05) 0%, rgba(16, 185, 129, 0.1) 100%);
+                border: 1px solid rgba(16, 185, 129, 0.2);
+            }
+
+            .stat-card.expense {
+                background: linear-gradient(145deg, rgba(239, 68, 68, 0.05) 0%, rgba(239, 68, 68, 0.1) 100%);
+                border: 1px solid rgba(239, 68, 68, 0.2);
+            }
+
+            .stat-card::before {
+                content: '';
+                position: absolute;
+                top: 0;
+                left: 0;
+                right: 0;
+                height: 4px;
+                background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+            }
+
             .stat-card:hover {
                 transform: translateY(-5px);
+                box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+            }
+
+            .stat-label {
+                color: #666;
+                font-size: 0.95rem;
+                font-weight: 500;
+                margin-bottom: 0.75rem;
+                display: flex;
+                align-items: center;
+                gap: 0.5rem;
+            }
+
+            .stat-label i {
+                font-size: 1.1rem;
+            }
+
+            .income .stat-label i {
+                color: #10B981;
+            }
+
+            .expense .stat-label i {
+                color: #EF4444;
+            }
+
+            .stat-amount {
+                font-size: 1.75rem;
+                font-weight: 600;
+                color: #333;
+                margin-bottom: 0.5rem;
+            }
+
+            .income .stat-amount {
+                color: #059669;
+            }
+
+            .expense .stat-amount {
+                color: #DC2626;
+            }
+
+            .stat-trend {
+                font-size: 0.875rem;
+                display: flex;
+                align-items: center;
+                gap: 0.5rem;
+                padding: 0.5rem 0.75rem;
+                border-radius: 0.5rem;
+                width: fit-content;
+            }
+
+            .trend-up {
+                background: rgba(16, 185, 129, 0.1);
+                color: #059669;
+            }
+
+            .trend-down {
+                background: rgba(239, 68, 68, 0.1);
+                color: #DC2626;
+            }
+
+            /* Recent Transactions - Updated design */
+            .transactions-section {
+                background: linear-gradient(145deg, rgba(99, 102, 241, 0.08) 0%, rgba(67, 56, 202, 0.12) 100%);
+                backdrop-filter: blur(10px);
+                border-radius: 1rem;
+                padding: 1.5rem;
+                border: 1px solid rgba(99, 102, 241, 0.2);
+                box-shadow: 0 4px 15px rgba(99, 102, 241, 0.1);
+            }
+
+            .transaction-item {
+                display: flex;
+                align-items: center;
+                padding: 1rem;
+                border-bottom: 1px solid rgba(99, 102, 241, 0.15);
+                transition: all 0.2s ease;
+                border-radius: 0.5rem;
+                background: rgba(255, 255, 255, 0.02);
+            }
+
+            .transaction-item:last-child {
+                border-bottom: none;
+            }
+
+            .transaction-item:hover {
+                background: rgba(99, 102, 241, 0.08);
+                transform: translateX(5px);
+            }
+
+            .transaction-icon {
+                width: 40px;
+                height: 40px;
+                border-radius: 10px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                margin-right: 1rem;
+                backdrop-filter: blur(5px);
+            }
+
+            .expense-icon {
+                background: rgba(239, 68, 68, 0.15);
+                color: #EF4444;
+            }
+
+            .income-icon {
+                background: rgba(16, 185, 129, 0.15);
+                color: #10B981;
+            }
+
+            .transaction-info {
+                flex: 1;
+            }
+
+            .transaction-title {
+                font-weight: 500;
+                color: #333;
+                margin-bottom: 0.25rem;
+            }
+
+            .transaction-category {
+                font-size: 0.875rem;
+                color: #666;
+            }
+
+            .transaction-amount {
+                font-weight: 600;
+                font-size: 1.1rem;
+            }
+
+            .amount-expense {
+                color: #EF4444;
+            }
+
+            .amount-income {
+                color: #10B981;
+            }
+
+            .transaction-date {
+                font-size: 0.875rem;
+                color: #666;
+                text-align: right;
+            }
+
+            /* Empty state styling */
+            .empty-transactions {
+                text-align: center;
+                padding: 3rem 1rem;
+                color: #666;
+                background: rgba(99, 102, 241, 0.03);
+                border-radius: 1rem;
+            }
+
+            .empty-transactions i {
+                font-size: 3rem;
+                color: rgba(99, 102, 241, 0.3);
+                margin-bottom: 1rem;
             }
         </style>
     </th:block>
@@ -28,21 +264,76 @@
 <body>
     <section>
         <div class="container-fluid py-4">
-            <h2 class="mb-4">Dashboard Overview</h2>
-            <!-- Dashboard content here -->
-            <div class="row g-4">
-                <!-- Expense Summary Card -->
-                <div class="col-md-6 col-lg-3">
-                    <div class="stat-card">
-                        <h5 class="text-light opacity-75 mb-3">Total Expenses</h5>
-                        <h3 class="mb-0" th:text="${#numbers.formatCurrency(totalExpenses)}">$0.00</h3>
+            <div class="dashboard-header">
+                <h2 class="mb-4">Dashboard Overview</h2>
+            </div>
+
+            <!-- Main Balance Card -->
+            <div class="row">
+                <div class="col-12">
+                    <div class="balance-card">
+                        <div class="balance-label">Current Balance</div>
+                        <div class="balance-amount" th:text="${#numbers.formatCurrency(totalIncome - totalExpenses)}">$0.00</div>
+                        <div class="balance-trend">
+                            <span th:if="${totalIncome > totalExpenses}">
+                                <i class="fas fa-arrow-up me-1"></i>
+                                <span th:text="${#numbers.formatPercent((totalIncome - totalExpenses) / (totalIncome > 0 ? totalIncome : 1), 1, 1)}">0%</span> increase this month
+                            </span>
+                            <span th:unless="${totalIncome > totalExpenses}">
+                                <i class="fas fa-arrow-down me-1"></i>
+                                <span th:text="${#numbers.formatPercent((totalExpenses - totalIncome) / (totalExpenses > 0 ? totalExpenses : 1), 1, 1)}">0%</span> decrease this month
+                            </span>
+                        </div>
                     </div>
                 </div>
-                <!-- Income Summary Card -->
-                <div class="col-md-6 col-lg-3">
-                    <div class="stat-card">
-                        <h5 class="text-light opacity-75 mb-3">Total Income</h5>
-                        <h3 class="mb-0" th:text="${#numbers.formatCurrency(totalIncome)}">$0.00</h3>
+            </div>
+
+            <!-- Stats Cards -->
+            <div class="stats-container">
+                <div class="stat-card income">
+                    <div class="stat-label">
+                        <i class="fas fa-arrow-trend-up"></i>
+                        Total Income
+                    </div>
+                    <div class="stat-amount" th:text="${#numbers.formatCurrency(totalIncome)}">$0.00</div>
+                    <div class="stat-trend trend-up">
+                        <i class="fas fa-arrow-up"></i>
+                        <span>12.5% vs last month</span>
+                    </div>
+                </div>
+                <div class="stat-card expense">
+                    <div class="stat-label">
+                        <i class="fas fa-arrow-trend-down"></i>
+                        Total Expenses
+                    </div>
+                    <div class="stat-amount" th:text="${#numbers.formatCurrency(totalExpenses)}">$0.00</div>
+                    <div class="stat-trend trend-down">
+                        <i class="fas fa-arrow-down"></i>
+                        <span>8.3% vs last month</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Transactions -->
+            <div class="transactions-section">
+                <h4 class="mb-4">Recent Transactions</h4>
+                <div th:if="${#lists.isEmpty(recentTransactions)}" class="empty-transactions">
+                    <i class="fas fa-receipt"></i>
+                    <h5>No transactions yet</h5>
+                    <p>Start adding your transactions to track your expenses and income.</p>
+                </div>
+                <div th:each="transaction : ${recentTransactions}" class="transaction-item">
+                    <div th:class="${transaction.type == 'EXPENSE' ? 'transaction-icon expense-icon' : 'transaction-icon income-icon'}">
+                        <i th:class="${transaction.type == 'EXPENSE' ? 'fas fa-arrow-down' : 'fas fa-arrow-up'}"></i>
+                    </div>
+                    <div class="transaction-info">
+                        <div class="transaction-title" th:text="${transaction.description}">Transaction Description</div>
+                        <div class="transaction-category" th:text="${transaction.category.name}">Category</div>
+                    </div>
+                    <div class="text-end">
+                        <div th:class="${transaction.type == 'EXPENSE' ? 'transaction-amount amount-expense' : 'transaction-amount amount-income'}"
+                             th:text="${transaction.type == 'EXPENSE' ? '-' : '+'} + ${#numbers.formatCurrency(transaction.amount)}">$0.00</div>
+                        <div class="transaction-date" th:text="${#temporals.format(transaction.date, 'MMM dd, yyyy')}">Jan 1, 2025</div>
                     </div>
                 </div>
             </div>

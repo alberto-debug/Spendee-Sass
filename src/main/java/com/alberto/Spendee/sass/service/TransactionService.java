@@ -13,6 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.time.YearMonth;
 import java.util.List;
@@ -228,7 +229,7 @@ public class TransactionService {
             return current.compareTo(BigDecimal.ZERO) == 0 ? 0 : 100;
         }
         return current.subtract(previous)
-                .divide(previous, 4, BigDecimal.ROUND_HALF_UP)
+                .divide(previous, 4, RoundingMode.HALF_UP)
                 .multiply(BigDecimal.valueOf(100))
                 .doubleValue();
     }

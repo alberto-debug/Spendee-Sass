@@ -371,4 +371,164 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         }
     }
+
+    // M-Pesa Statement Upload Functionality
+    const mpesaFileInput = document.getElementById('mpesaFile');
+    const uploadMpesaBtn = document.getElementById('uploadMpesaBtn');
+    const fileInfo = document.getElementById('fileInfo');
+    const fileName = document.getElementById('fileName');
+    const fileSize = document.getElementById('fileSize');
+    const uploadProgress = document.getElementById('uploadProgress');
+    const progressBar = document.getElementById('progressBar');
+    const progressText = document.getElementById('progressText');
+    const uploadResult = document.getElementById('uploadResult');
+
+    // Show file info when file is selected
+    mpesaFileInput.addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (file) {
+            fileName.textContent = file.name;
+            fileSize.textContent = formatFileSize(file.size);
+            fileInfo.classList.remove('d-none');
+            uploadResult.classList.add('d-none');
+        }
+    });
+
+    // Handle M-Pesa statement upload
+    uploadMpesaBtn.addEventListener('click', function() {
+        const file = mpesaFileInput.files[0];
+
+        if (!file) {
+            showToast('error', 'Please select a PDF file to upload');
+            return;
+        }
+
+        if (!file.name.toLowerCase().endsWith('.pdf')) {
+            showToast('error', 'Only PDF files are supported');
+            return;
+        }
+
+        if (file.size > 10 * 1024 * 1024) { // 10MB
+            showToast('error', 'File size must be less than 10MB');
+            return;
+        }
+
+        // Disable button and show progress
+        uploadMpesaBtn.disabled = true;
+        uploadMpesaBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Processing...';
+        uploadProgress.classList.remove('d-none');
+        uploadResult.classList.add('d-none');
+
+        // Simulate progress
+        let progress = 0;
+        const progressInterval = setInterval(() => {
+            progress += 10;
+            if (progress >= 90) {
+                clearInterval(progressInterval);
+            }
+            progressBar.style.width = progress + '%';
+            progressText.textContent = progress + '%';
+        }, 200);
+
+        // Create FormData and upload
+        const formData = new FormData();
+        formData.append('file', file);
+
+        fetch('/api/mpesa/upload-statement', {
+            method: 'POST',
+            headers: {
+                'Authorization': 'Bearer ' + localStorage.getItem('jwt_token')
+            },
+            body: formData
+        })
+        .then(response => {
+            clearInterval(progressInterval);
+            progressBar.style.width = '100%';
+            progressText.textContent = '100%';
+            return response.json();
+        })
+        .then(data => {
+            uploadProgress.classList.add('d-none');
+
+            if (data.success) {
+                // Show success message with details
+                uploadResult.innerHTML = `
+                    <div class="alert alert-success" style="background: rgba(16, 185, 129, 0.2); border: 1px solid rgba(16, 185, 129, 0.3); color: #86efac;">
+                        <h6 class="mb-2"><i class="fas fa-check-circle me-2"></i>Import Successful!</h6>
+                        <ul class="mb-0 ps-3" style="font-size: 0.9rem;">
+                            <li>Total transactions found: ${data.totalTransactions}</li>
+                            <li>New transactions saved: ${data.savedTransactions}</li>
+                            <li>Duplicates skipped: ${data.skippedTransactions}</li>
+                            <li>Total income: ${formatCurrency(data.totalIncome)}</li>
+                            <li>Total expenses: ${formatCurrency(data.totalExpense)}</li>
+                        </ul>
+                    </div>
+                `;
+                uploadResult.classList.remove('d-none');
+
+                showToast('success', data.message);
+
+                // Reload transactions after 2 seconds
+                setTimeout(() => {
+                    loadTransactions();
+                    // Close modal
+                    const modal = bootstrap.Modal.getInstance(document.getElementById('mpesaUploadModal'));
+                    modal.hide();
+                    // Reset form
+                    document.getElementById('mpesaUploadForm').reset();
+                    fileInfo.classList.add('d-none');
+                    uploadResult.classList.add('d-none');
+                }, 2000);
+            } else {
+                // Show error message
+                uploadResult.innerHTML = `
+                    <div class="alert alert-danger" style="background: rgba(239, 68, 68, 0.2); border: 1px solid rgba(239, 68, 68, 0.3); color: #fca5a5;">
+                        <h6 class="mb-2"><i class="fas fa-exclamation-circle me-2"></i>Upload Failed</h6>
+                        <p class="mb-0">${data.error || 'An error occurred while processing the statement'}</p>
+                    </div>
+                `;
+                uploadResult.classList.remove('d-none');
+                showToast('error', data.error || 'Failed to process statement');
+            }
+        })
+        .catch(error => {
+            clearInterval(progressInterval);
+            uploadProgress.classList.add('d-none');
+
+            uploadResult.innerHTML = `
+                <div class="alert alert-danger" style="background: rgba(239, 68, 68, 0.2); border: 1px solid rgba(239, 68, 68, 0.3); color: #fca5a5;">
+                    <h6 class="mb-2"><i class="fas fa-exclamation-circle me-2"></i>Upload Failed</h6>
+                    <p class="mb-0">An error occurred while uploading the statement. Please try again.</p>
+                </div>
+            `;
+            uploadResult.classList.remove('d-none');
+
+            showToast('error', 'Failed to upload statement');
+            console.error('Error:', error);
+        })
+        .finally(() => {
+            // Re-enable button
+            uploadMpesaBtn.disabled = false;
+            uploadMpesaBtn.innerHTML = '<i class="fas fa-cloud-upload-alt me-2"></i>Upload & Import';
+        });
+    });
+
+    // Helper function to format file size
+    function formatFileSize(bytes) {
+        if (bytes === 0) return '0 Bytes';
+        const k = 1024;
+        const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
+    }
+
+    // Reset modal when closed
+    document.getElementById('mpesaUploadModal').addEventListener('hidden.bs.modal', function () {
+        document.getElementById('mpesaUploadForm').reset();
+        fileInfo.classList.add('d-none');
+        uploadProgress.classList.add('d-none');
+        uploadResult.classList.add('d-none');
+        progressBar.style.width = '0%';
+        progressText.textContent = '0%';
+    });
 });

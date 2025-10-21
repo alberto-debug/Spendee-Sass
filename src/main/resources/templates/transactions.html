@@ -33,9 +33,14 @@
         <div class="container-fluid py-4">
             <div class="d-flex justify-content-between align-items-center mb-4">
                 <h2>Transactions</h2>
-                <button class="btn btn-primary add-transaction-btn" data-bs-toggle="modal" data-bs-target="#addTransactionModal">
-                    <i class="fas fa-plus me-2"></i>Add Transaction
-                </button>
+                <div class="d-flex gap-2">
+                    <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#mpesaUploadModal">
+                        <i class="fas fa-file-upload me-2"></i>Upload M-Pesa Statement
+                    </button>
+                    <button class="btn btn-primary add-transaction-btn" data-bs-toggle="modal" data-bs-target="#addTransactionModal">
+                        <i class="fas fa-plus me-2"></i>Add Transaction
+                    </button>
+                </div>
             </div>
             <div class="transactions-container">
                 <!-- Transactions will be loaded here dynamically -->
@@ -92,6 +97,90 @@
                     <div class="modal-footer border-top border-secondary">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
                         <button type="button" class="btn btn-primary" id="saveTransaction">Save Transaction</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- M-Pesa Statement Upload Modal -->
+        <div class="modal fade" id="mpesaUploadModal" tabindex="-1">
+            <div class="modal-dialog">
+                <div class="modal-content" style="background: rgba(25, 25, 25, 0.95); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.1); color: white;">
+                    <div class="modal-header border-bottom border-secondary">
+                        <h5 class="modal-title">
+                            <i class="fas fa-file-upload me-2 text-success"></i>Upload M-Pesa Statement
+                        </h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <!-- Instructions -->
+                        <div class="alert alert-info mb-3" style="background: rgba(99, 102, 241, 0.2); border: 1px solid rgba(99, 102, 241, 0.3); color: #a5b4fc;">
+                            <h6 class="mb-2"><i class="fas fa-info-circle me-2"></i>How to upload:</h6>
+                            <ol class="mb-0 ps-3" style="font-size: 0.9rem;">
+                                <li>Download your M-Pesa statement from the Safaricom app</li>
+                                <li>Select the PDF file below</li>
+                                <li>We'll automatically extract and categorize your transactions</li>
+                                <li>Duplicate transactions will be skipped</li>
+                            </ol>
+                        </div>
+
+                        <!-- File Upload Form -->
+                        <form id="mpesaUploadForm" enctype="multipart/form-data">
+                            <div class="mb-3">
+                                <label for="mpesaFile" class="form-label">Select M-Pesa Statement (PDF)</label>
+                                <div class="input-group">
+                                    <input type="file"
+                                           class="form-control bg-dark text-white"
+                                           id="mpesaFile"
+                                           name="file"
+                                           accept=".pdf"
+                                           required>
+                                    <span class="input-group-text bg-dark text-white border-secondary">
+                                        <i class="fas fa-file-pdf text-danger"></i>
+                                    </span>
+                                </div>
+                                <small class="text-muted">Maximum file size: 10MB</small>
+                            </div>
+
+                            <!-- File info display -->
+                            <div id="fileInfo" class="d-none mb-3">
+                                <div class="card bg-dark border-secondary">
+                                    <div class="card-body py-2">
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <div>
+                                                <i class="fas fa-file-pdf text-danger me-2"></i>
+                                                <span id="fileName" class="text-white"></span>
+                                            </div>
+                                            <span id="fileSize" class="badge bg-secondary"></span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Upload Progress -->
+                            <div id="uploadProgress" class="d-none mb-3">
+                                <div class="progress" style="height: 25px; background: rgba(255,255,255,0.1);">
+                                    <div id="progressBar"
+                                         class="progress-bar progress-bar-striped progress-bar-animated bg-success"
+                                         role="progressbar"
+                                         style="width: 0%">
+                                        <span id="progressText">0%</span>
+                                    </div>
+                                </div>
+                                <small class="text-muted mt-1 d-block">Processing statement...</small>
+                            </div>
+
+                            <!-- Upload Result -->
+                            <div id="uploadResult" class="d-none">
+                                <!-- Success/Error message will be inserted here -->
+                            </div>
+                        </form>
+                    </div>
+                    <div class="modal-footer border-top border-secondary">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="button" class="btn btn-success" id="uploadMpesaBtn">
+                            <i class="fas fa-cloud-upload-alt me-2"></i>Upload & Import
+                        </button>
                     </div>
                 </div>
             </div>

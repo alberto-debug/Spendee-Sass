@@ -107,6 +107,13 @@
             <artifactId>itextpdf</artifactId>
             <version>5.5.13.3</version>
         </dependency>
+
+        <!-- PDF Parsing for M-Pesa Statements -->
+        <dependency>
+            <groupId>org.apache.pdfbox</groupId>
+            <artifactId>pdfbox</artifactId>
+            <version>2.0.29</version>
+        </dependency>
     </dependencies>
 
 

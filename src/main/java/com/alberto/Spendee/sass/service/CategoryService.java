@@ -20,6 +20,7 @@ public class CategoryService {
     @Autowired
     private UserRepository userRepository;
 
+
     /**
      * Get all categories for a user
      */

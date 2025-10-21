@@ -19,18 +19,73 @@ document.addEventListener('DOMContentLoaded', () => {
 
     let financialChart = null;
 
+    // Get user's preferred currency from localStorage
+    function getUserCurrency() {
+        return localStorage.getItem('userCurrency') || 'USD';
+    }
+
+    // Get currency symbol based on currency code
+    function getCurrencySymbol(currencyCode) {
+        const symbols = {
+            'USD': '$',
+            'EUR': '€',
+            'GBP': '£',
+            'JPY': '¥'
+        };
+        return symbols[currencyCode] || '$';
+    }
+
     // Initialize page
     init();
+
+    /**
+     * Fetch user preferences and store in localStorage
+     */
+    function fetchUserPreferences() {
+        // If localStorage already has a currency, use it (user's choice takes precedence)
+        const existingCurrency = localStorage.getItem('userCurrency');
+        if (existingCurrency) {
+            console.log('Dashboard - Using saved currency from localStorage:', existingCurrency);
+            return Promise.resolve();
+        }
+
+        // Only fetch from API if we don't have a saved preference
+        return fetch('/api/user/me', {
+            headers: {
+                'Authorization': 'Bearer ' + localStorage.getItem('jwt_token')
+            }
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.preferences && data.preferences.currency) {
+                const currency = data.preferences.currency;
+                localStorage.setItem('userCurrency', currency);
+                localStorage.setItem('userDateFormat', data.preferences.dateFormat || 'MM/DD/YYYY');
+                console.log('Dashboard - Loaded currency from API:', currency);
+            } else {
+                localStorage.setItem('userCurrency', 'USD');
+                console.log('Dashboard - Using default currency: USD');
+            }
+        })
+        .catch(error => {
+            console.error('Error fetching user preferences:', error);
+            localStorage.setItem('userCurrency', 'USD');
+        });
+    }
 
     /**
      * Initialize the dashboard
      */
     function init() {
         showLoading();
-        Promise.all([
-            fetchDashboardSummary(),
-            fetchRecentTransactions()
-        ])
+        // First fetch user preferences, then load dashboard data
+        fetchUserPreferences()
+        .then(() => {
+            return Promise.all([
+                fetchDashboardSummary(),
+                fetchRecentTransactions()
+            ]);
+        })
         .then(() => hideLoading())
         .catch(error => {
             console.error('Error initializing dashboard:', error);
@@ -150,7 +205,7 @@ document.addEventListener('DOMContentLoaded', () => {
                             color: 'rgba(0, 0, 0, 0.1)',
                         },
                         ticks: {
-                            callback: value => '$' + value.toLocaleString('en-US')
+                            callback: value => getCurrencySymbol(getUserCurrency()) + value.toLocaleString('en-US')
                         }
                     },
                     x: {
@@ -190,7 +245,7 @@ document.addEventListener('DOMContentLoaded', () => {
                                 if (label) {
                                     label += ': ';
                                 }
-                                label += '$' + context.parsed.y.toLocaleString('en-US', {
+                                label += getCurrencySymbol(getUserCurrency()) + context.parsed.y.toLocaleString('en-US', {
                                     minimumFractionDigits: 2,
                                     maximumFractionDigits: 2
                                 });
@@ -244,9 +299,11 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function formatCurrency(amount) {
+        const userCurrency = getUserCurrency();
+        console.log('Formatting currency with:', userCurrency);
         return new Intl.NumberFormat('en-US', {
             style: 'currency',
-            currency: 'USD',
+            currency: userCurrency,
             minimumFractionDigits: 2,
             maximumFractionDigits: 2
         }).format(amount);

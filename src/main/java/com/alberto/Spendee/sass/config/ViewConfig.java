@@ -58,4 +58,6 @@ public class ViewConfig {
             model.addAttribute("userPhotoUrl", null);
         }
     }
+
 }
+

@@ -368,15 +368,11 @@
             <div class="balance-row">
                 <div class="balance-card">
                     <div class="balance-label">Current Balance</div>
-                    <div class="balance-amount" th:text="${#numbers.formatCurrency(totalIncome - totalExpenses)}">$0.00</div>
+                    <div class="balance-amount" id="totalBalance">$0.00</div>
                     <div class="balance-trend">
-                        <span th:if="${totalIncome > totalExpenses}">
+                        <span id="balanceTrend">
                             <i class="fas fa-arrow-up me-1"></i>
-                            <span th:text="${#numbers.formatPercent((totalIncome - totalExpenses) / (totalIncome > 0 ? totalIncome : 1), 1, 1)}">0%</span>
-                        </span>
-                        <span th:unless="${totalIncome > totalExpenses}">
-                            <i class="fas fa-arrow-down me-1"></i>
-                            <span th:text="${#numbers.formatPercent((totalExpenses - totalIncome) / (totalExpenses > 0 ? totalExpenses : 1), 1, 1)}">0%</span>
+                            <span>0%</span>
                         </span>
                     </div>
                 </div>
@@ -386,10 +382,10 @@
                         <i class="fas fa-arrow-trend-up"></i>
                         Total Income
                     </div>
-                    <div class="stat-amount" th:text="${#numbers.formatCurrency(totalIncome)}">$0.00</div>
+                    <div class="stat-amount" id="totalIncome">$0.00</div>
                     <div class="stat-trend trend-up">
                         <i class="fas fa-arrow-up"></i>
-                        <span>12.5% vs last month</span>
+                        <span id="incomeChange">12.5% vs last month</span>
                     </div>
                 </div>
 
@@ -398,7 +394,7 @@
                         <i class="fas fa-arrow-trend-down"></i>
                         Total Expenses
                     </div>
-                    <div class="stat-amount" th:text="${#numbers.formatCurrency(totalExpenses)}">$0.00</div>
+                    <div class="stat-amount" id="totalExpense">$0.00</div>
                     <div class="stat-trend trend-down">
                         <i class="fas fa-arrow-down"></i>
                         <span>8.3% vs last month</span>

@@ -1,4 +1,20 @@
 document.addEventListener('DOMContentLoaded', function() {
+    // Get user's preferred currency from localStorage
+    function getUserCurrency() {
+        return localStorage.getItem('userCurrency') || 'USD';
+    }
+
+    // Get currency symbol based on currency code
+    function getCurrencySymbol(currencyCode) {
+        const symbols = {
+            'USD': '$',
+            'EUR': '€',
+            'GBP': '£',
+            'JPY': '¥'
+        };
+        return symbols[currencyCode] || '$';
+    }
+
     // Create toast container if it doesn't exist
     if (!document.getElementById('toastContainer')) {
         const toastContainer = document.createElement('div');
@@ -71,6 +87,45 @@ document.addEventListener('DOMContentLoaded', function() {
     const transactionModal = new bootstrap.Modal(document.getElementById('addTransactionModal'));
     let categories = [];
 
+    // Fetch user preferences and store in localStorage
+    function fetchUserPreferences() {
+        // If localStorage already has a currency, use it (user's choice takes precedence)
+        const existingCurrency = localStorage.getItem('userCurrency');
+        if (existingCurrency) {
+            console.log('Transactions - Using saved currency from localStorage:', existingCurrency);
+            return Promise.resolve();
+        }
+
+        // Only fetch from API if we don't have a saved preference
+        return fetch('/api/user/me', {
+            headers: {
+                'Authorization': 'Bearer ' + localStorage.getItem('jwt_token')
+            }
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.preferences && data.preferences.currency) {
+                const currency = data.preferences.currency;
+                localStorage.setItem('userCurrency', currency);
+                localStorage.setItem('userDateFormat', data.preferences.dateFormat || 'MM/DD/YYYY');
+                console.log('Transactions - Loaded currency from API:', currency);
+            } else {
+                localStorage.setItem('userCurrency', 'USD');
+                console.log('Transactions - Using default currency: USD');
+            }
+        })
+        .catch(error => {
+            console.error('Error fetching user preferences:', error);
+            localStorage.setItem('userCurrency', 'USD');
+        });
+    }
+
+    // Load user preferences first, then load transactions
+    fetchUserPreferences().then(() => {
+        // Load and display transactions after preferences are loaded
+        loadTransactions();
+    });
+
     // Set default date to today
     document.getElementById('date').valueAsDate = new Date();
 
@@ -79,9 +134,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Initial load of categories
     loadCategories();
-
-    // Load and display transactions
-    loadTransactions();
 
     // Format amount input as user types
     const amountInput = document.getElementById('amount');
@@ -271,7 +323,9 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }
 
-        const amount = transaction.type === 'EXPENSE' ? `-$${transaction.amount.toFixed(2)}` : `+$${transaction.amount.toFixed(2)}`;
+        const currencySymbol = getCurrencySymbol(getUserCurrency());
+        console.log('Creating transaction card with currency:', getUserCurrency(), 'Symbol:', currencySymbol);
+        const amount = transaction.type === 'EXPENSE' ? `-${currencySymbol}${transaction.amount.toFixed(2)}` : `+${currencySymbol}${transaction.amount.toFixed(2)}`;
         const amountClass = transaction.type === 'EXPENSE' ? 'text-danger' : 'text-success';
 
         card.innerHTML = `

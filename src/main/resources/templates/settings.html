@@ -38,6 +38,21 @@
                 box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
                 color: white;
             }
+            /* Fix select dropdown styling */
+            select.form-control {
+                background: rgba(18, 18, 18, 0.95);
+                color: white;
+                cursor: pointer;
+            }
+            select.form-control option {
+                background: rgba(18, 18, 18, 0.95);
+                color: white;
+                padding: 10px;
+            }
+            select.form-control:focus {
+                background: rgba(18, 18, 18, 0.95);
+                color: white;
+            }
             .form-label {
                 color: rgba(255, 255, 255, 0.8);
                 font-weight: 500;
@@ -73,7 +88,7 @@
                 <h4 class="mb-4 text-center">Profile Settings</h4>
                 <form id="profileForm">
                     <div class="profile-photo-container">
-                        <img id="profile-photo-preview" src="/api/user/photo" alt="Profile Photo"
+                        <img id="profile-photo-preview" src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48Y2lyY2xlIGN4PSI1MCIgY3k9IjUwIiByPSI1MCIgZmlsbD0iIzY2NjYiLz48dGV4dCB4PSI1MCUiIHk9IjUwJSIgZm9udC1zaXplPSI0MCIgZmlsbD0id2hpdGUiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGR5PSIuM2VtIj7wn5CkPC90ZXh0Pjwvc3ZnPg==" alt="Profile Photo"
                              class="rounded-circle profile-photo-preview"
                              style="object-fit:cover; border: 3px solid rgba(99, 102, 241, 0.3); box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);">
                         <div class="photo-input-container">

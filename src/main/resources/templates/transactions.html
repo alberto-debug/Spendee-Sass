@@ -16,6 +16,8 @@
                 border: 1px solid rgba(255, 255, 255, 0.05);
                 border-radius: 1rem;
                 margin-bottom: 1rem;
+                position: relative;
+                z-index: 1;
             }
             .add-transaction-btn {
                 background: linear-gradient(135deg, #6366F1 0%, #4338CA 100%);
@@ -24,6 +26,176 @@
             }
             .add-transaction-btn:hover {
                 opacity: 0.9;
+            }
+
+            /* Custom Select Box Styling */
+            .form-control, .form-select {
+                background-color: #000000 !important;
+                border: 1px solid rgba(255, 255, 255, 0.2) !important;
+                color: #ffffff !important;
+                border-radius: 0.5rem;
+                transition: all 0.3s ease;
+            }
+
+            .form-control:focus, .form-select:focus {
+                background-color: #000000 !important;
+                border-color: #dc3545 !important;
+                box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25) !important;
+                color: #ffffff !important;
+            }
+
+            .form-control::placeholder {
+                color: rgba(255, 255, 255, 0.6) !important;
+            }
+
+            /* Select dropdown styling */
+            select.form-control option, select.form-select option {
+                background-color: #000000 !important;
+                color: #ffffff !important;
+                border: none;
+                padding: 8px 12px;
+            }
+
+            select.form-control option:hover, select.form-select option:hover {
+                background-color: #dc3545 !important;
+                color: #ffffff !important;
+            }
+
+            select.form-control option:checked, select.form-select option:checked {
+                background-color: #dc3545 !important;
+                color: #ffffff !important;
+                font-weight: bold;
+            }
+
+            /* Bootstrap dropdown menu styling for transaction actions */
+            .dropdown-menu {
+                background-color: rgba(25, 25, 25, 0.95) !important;
+                backdrop-filter: blur(10px);
+                border: 1px solid rgba(255, 255, 255, 0.1) !important;
+                border-radius: 0.5rem;
+                box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+                z-index: 1050 !important;
+                margin-top: 5px;
+            }
+
+            .dropdown-item {
+                color: #ffffff !important;
+                transition: all 0.2s ease;
+                border-radius: 0.25rem;
+                margin: 2px 4px;
+            }
+
+            .dropdown-item:hover, .dropdown-item:focus {
+                background-color: rgba(99, 102, 241, 0.2) !important;
+                color: #ffffff !important;
+            }
+
+            .dropdown-item.text-danger:hover {
+                background-color: rgba(220, 53, 69, 0.2) !important;
+                color: #dc3545 !important;
+            }
+
+            /* Modal improvements */
+            .modal {
+                z-index: 1055 !important;
+            }
+
+            .modal-backdrop {
+                z-index: 1054 !important;
+                background-color: rgba(0, 0, 0, 0.7);
+            }
+
+            .modal-content {
+                border-radius: 1rem;
+                border: 1px solid rgba(255, 255, 255, 0.1);
+                box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+            }
+
+            /* Transaction card dropdown positioning */
+            .transaction-card .dropdown-menu {
+                position: absolute;
+                right: 0;
+                left: auto;
+                min-width: 150px;
+                transform: translateX(0);
+            }
+
+            /* Ensure dropdowns don't go behind other elements */
+            .transaction-card {
+                overflow: visible;
+            }
+
+            .transaction-card .dropdown {
+                position: relative;
+                z-index: 10;
+            }
+
+            .transaction-card .dropdown.show .dropdown-menu {
+                z-index: 1051 !important;
+            }
+
+            /* Custom checkbox styling */
+            .transaction-checkbox {
+                width: 18px;
+                height: 18px;
+                background-color: #000000;
+                border: 2px solid rgba(255, 255, 255, 0.3);
+                border-radius: 4px;
+                cursor: pointer;
+                transition: all 0.2s ease;
+            }
+
+            .transaction-checkbox:checked {
+                background-color: #dc3545;
+                border-color: #dc3545;
+            }
+
+            .transaction-checkbox:focus {
+                outline: none;
+                box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25);
+            }
+
+            /* Alert styling for bulk actions */
+            .alert-info {
+                background: rgba(99, 102, 241, 0.2) !important;
+                border: 1px solid rgba(99, 102, 241, 0.3) !important;
+                color: #a5b4fc !important;
+                border-radius: 0.5rem;
+            }
+
+            /* Input group styling */
+            .input-group-text {
+                background-color: #000000 !important;
+                border: 1px solid rgba(255, 255, 255, 0.2) !important;
+                color: #ffffff !important;
+            }
+
+            /* Dropdown toggle button in transaction cards */
+            .transaction-card .btn-outline-secondary {
+                background-color: transparent;
+                border-color: rgba(255, 255, 255, 0.2);
+                color: rgba(255, 255, 255, 0.7);
+                padding: 4px 8px;
+                font-size: 0.75rem;
+            }
+
+            .transaction-card .btn-outline-secondary:hover {
+                background-color: rgba(255, 255, 255, 0.1);
+                border-color: rgba(255, 255, 255, 0.3);
+                color: #ffffff;
+            }
+
+            /* Category name styling - visible across all pages */
+            .category-name {
+                color: #a8b3cf !important;
+                font-weight: 500;
+                font-size: 0.875rem;
+            }
+
+            /* Override text-muted for category names everywhere */
+            .text-muted.category-name,
+            small.category-name {
+                color: #a8b3cf !important;
             }
         </style>
     </th:block>
@@ -97,6 +269,88 @@
                     <div class="modal-footer border-top border-secondary">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
                         <button type="button" class="btn btn-primary" id="saveTransaction">Save Transaction</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Edit Transaction Modal -->
+        <div class="modal fade" id="editTransactionModal" tabindex="-1">
+            <div class="modal-dialog">
+                <div class="modal-content" style="background: rgba(25, 25, 25, 0.95); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.1); color: white;">
+                    <div class="modal-header border-bottom border-secondary">
+                        <h5 class="modal-title">Edit Transaction</h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <form id="editTransactionForm">
+                            <input type="hidden" id="editTransactionId" name="id">
+                            <div class="mb-3">
+                                <label for="editTransactionType" class="form-label">Type</label>
+                                <select class="form-control bg-dark text-white" id="editTransactionType" name="type" required>
+                                    <option value="EXPENSE">Expense</option>
+                                    <option value="INCOME">Income</option>
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label for="editAmount" class="form-label">Amount</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-dark text-white border-secondary">$</span>
+                                    <input type="text"
+                                           class="form-control bg-dark text-white"
+                                           id="editAmount"
+                                           name="amount"
+                                           placeholder="0.00"
+                                           style="-moz-appearance: textfield;"
+                                           required>
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <label for="editCategory" class="form-label">Category</label>
+                                <select class="form-control bg-dark text-white" id="editCategory" name="categoryId">
+                                    <option value="">No Category</option>
+                                    <!-- Categories will be loaded dynamically -->
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label for="editDescription" class="form-label">Description</label>
+                                <input type="text" class="form-control bg-dark text-white" id="editDescription" name="description" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="editDate" class="form-label">Date</label>
+                                <input type="date" class="form-control bg-dark text-white" id="editDate" name="date" required>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="modal-footer border-top border-secondary">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="button" class="btn btn-primary" id="updateTransaction">Update Transaction</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bulk Categorize Modal -->
+        <div class="modal fade" id="bulkCategorizeModal" tabindex="-1">
+            <div class="modal-dialog">
+                <div class="modal-content" style="background: rgba(25, 25, 25, 0.95); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.1); color: white;">
+                    <div class="modal-header border-bottom border-secondary">
+                        <h5 class="modal-title">Categorize Selected Transactions</h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <p>Select a category to assign to <span id="selectedCount">0</span> selected transaction(s):</p>
+                        <div class="mb-3">
+                            <label for="bulkCategory" class="form-label">Category</label>
+                            <select class="form-control bg-dark text-white" id="bulkCategory" name="categoryId">
+                                <option value="">No Category</option>
+                                <!-- Categories will be loaded dynamically -->
+                            </select>
+                        </div>
+                    </div>
+                    <div class="modal-footer border-top border-secondary">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="button" class="btn btn-primary" id="bulkCategorizeBtn">Apply Category</button>
                     </div>
                 </div>
             </div>

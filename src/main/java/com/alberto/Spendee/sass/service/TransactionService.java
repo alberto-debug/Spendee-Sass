@@ -224,6 +224,61 @@ public class TransactionService {
         );
     }
 
+    /**
+     * Categorize a single transaction
+     */
+    public Transaction categorizeTransaction(Long transactionId, Long categoryId, User user) {
+        Transaction transaction = getTransactionByIdAndUser(transactionId, user);
+        
+        if (categoryId != null) {
+            Category category = categoryRepository.findById(categoryId)
+                    .orElseThrow(() -> new RuntimeException("Category not found"));
+            
+            // Verify category belongs to user or is a default category
+            if (!category.getUser().getId().equals(user.getId()) && !category.isDefault()) {
+                throw new RuntimeException("Category doesn't belong to user");
+            }
+            
+            transaction.setCategory(category);
+        } else {
+            // Remove category if null is passed
+            transaction.setCategory(null);
+        }
+        
+        return transactionRepository.save(transaction);
+    }
+
+    /**
+     * Bulk categorize multiple transactions
+     */
+    public List<Transaction> bulkCategorizeTransactions(List<Long> transactionIds, Long categoryId, User user) {
+        List<Transaction> transactions = transactionRepository.findAllById(transactionIds);
+        
+        // Verify all transactions belong to the user
+        transactions.forEach(transaction -> {
+            if (!transaction.getUser().getId().equals(user.getId())) {
+                throw new RuntimeException("Transaction with ID " + transaction.getId() + " doesn't belong to user");
+            }
+        });
+        
+        Category category = null;
+        if (categoryId != null) {
+            category = categoryRepository.findById(categoryId)
+                    .orElseThrow(() -> new RuntimeException("Category not found"));
+            
+            // Verify category belongs to user or is a default category
+            if (!category.getUser().getId().equals(user.getId()) && !category.isDefault()) {
+                throw new RuntimeException("Category doesn't belong to user");
+            }
+        }
+        
+        // Update all transactions with the new category
+        final Category finalCategory = category;
+        transactions.forEach(transaction -> transaction.setCategory(finalCategory));
+        
+        return transactionRepository.saveAll(transactions);
+    }
+
     private double calculatePercentageChange(BigDecimal previous, BigDecimal current) {
         if (previous.compareTo(BigDecimal.ZERO) == 0) {
             return current.compareTo(BigDecimal.ZERO) == 0 ? 0 : 100;

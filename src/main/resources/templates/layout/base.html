@@ -21,12 +21,131 @@
         body {
             font-family: 'Poppins', sans-serif;
             background-color: #0a0a0a;
-
             color: #fff;
             padding-bottom: 60px;
             display: flex;
             flex-direction: column;
             overflow-x: hidden;
+        }
+
+        /* Global category name styling - visible across all pages */
+        .category-name {
+            color: #a8b3cf !important;
+            font-weight: 500;
+            font-size: 0.875rem;
+        }
+
+        /* Override text-muted for category names everywhere */
+        .text-muted.category-name,
+        small.category-name {
+            color: #a8b3cf !important;
+        }
+
+        /* Ensure category names are always visible */
+        .category-text {
+            color: #a8b3cf !important;
+        }
+
+        /* Global dropdown positioning - ensure dropdowns appear below navbar */
+        .dropdown-menu {
+            z-index: 1020 !important;
+            position: absolute !important;
+            top: 100% !important;
+            left: 0 !important;
+            margin-top: 2px !important;
+        }
+
+        /* Ensure transaction card dropdowns don't interfere with navbar */
+        .transaction-card .dropdown-menu {
+            z-index: 1020 !important;
+            position: absolute !important;
+            right: 0 !important;
+            left: auto !important;
+            top: 100% !important;
+            margin-top: 5px !important;
+            transform: none !important;
+        }
+
+        /* Override any higher z-index that might interfere with navbar */
+        .dropdown.show .dropdown-menu {
+            z-index: 1020 !important;
+        }
+
+        /* Ensure navbar stays above all content */
+        .navbar {
+            z-index: 1030 !important;
+        }
+
+        /* Ensure modals appear above navbar when needed */
+        .modal {
+            z-index: 1040 !important;
+        }
+
+        .modal-backdrop {
+            z-index: 1039 !important;
+        }
+
+        /* Bulk selection bar styling - simple label appearance */
+        .bulk-selection-bar {
+            background: rgba(25, 25, 25, 0.8);
+            border: 1px solid rgba(99, 102, 241, 0.3);
+            border-radius: 8px;
+            padding: 12px 16px;
+            margin: 0 0 20px 0;
+            backdrop-filter: blur(5px);
+            animation: slideDown 0.3s ease-out;
+        }
+
+        .bulk-selection-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 100%;
+        }
+
+        .selection-text {
+            color: #a8b3cf;
+            font-size: 0.9rem;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+        }
+
+        .selection-text i {
+            color: #6366f1;
+        }
+
+        .bulk-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .bulk-actions .btn-sm {
+            padding: 6px 12px;
+            font-size: 0.8rem;
+            border-radius: 6px;
+        }
+
+        .bulk-actions .btn-outline-light {
+            border-color: rgba(255, 255, 255, 0.3);
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        .bulk-actions .btn-outline-light:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+            border-color: rgba(255, 255, 255, 0.5);
+            color: #ffffff;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
     </style>
 

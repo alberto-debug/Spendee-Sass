@@ -2,6 +2,7 @@ package com.alberto.Spendee.sass.controller;
 
 import com.alberto.Spendee.sass.domain.transaction.Transaction;
 import com.alberto.Spendee.sass.domain.user.User;
+import com.alberto.Spendee.sass.dto.BulkCategorizeRequest;
 import com.alberto.Spendee.sass.dto.TransactionDto;
 import com.alberto.Spendee.sass.service.CategoryService;
 import com.alberto.Spendee.sass.service.TransactionService;
@@ -78,5 +79,25 @@ public class TransactionController {
 
         List<TransactionDto> transactions = transactionService.getTransactionsForMonth(user, date);
         return ResponseEntity.ok(transactions);
+    }
+
+    @PatchMapping("/{id}/categorize")
+    public ResponseEntity<TransactionDto> categorizeTransaction(@PathVariable Long id,
+                                                              @RequestParam(required = false) Long categoryId,
+                                                              @AuthenticationPrincipal User user) {
+        Transaction transaction = transactionService.categorizeTransaction(id, categoryId, user);
+        return ResponseEntity.ok(transactionService.convertToDto(transaction));
+    }
+
+    @PatchMapping("/bulk-categorize")
+    public ResponseEntity<List<TransactionDto>> bulkCategorizeTransactions(
+            @RequestBody BulkCategorizeRequest request,
+            @AuthenticationPrincipal User user) {
+        List<Transaction> transactions = transactionService.bulkCategorizeTransactions(
+                request.getTransactionIds(), request.getCategoryId(), user);
+        List<TransactionDto> transactionDtos = transactions.stream()
+                .map(transactionService::convertToDto)
+                .collect(java.util.stream.Collectors.toList());
+        return ResponseEntity.ok(transactionDtos);
     }
 }

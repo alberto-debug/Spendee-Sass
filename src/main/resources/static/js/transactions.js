@@ -268,52 +268,75 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    function loadTransactions() {
-        fetch('/api/transactions', {
+    // Load all categories (not filtered by type) for transaction display and editing
+    function loadAllCategories() {
+        return fetch('/api/categories', {
             headers: {
                 'Authorization': 'Bearer ' + localStorage.getItem('jwt_token')
             }
         })
         .then(response => response.json())
         .then(data => {
-            const container = document.querySelector('.transactions-container');
-            container.innerHTML = '';
-
-            if (data.length === 0) {
-                container.innerHTML = `
-                    <div class="text-center text-muted my-5">
-                        <i class="fas fa-receipt fa-3x mb-3"></i>
-                        <h5>No transactions yet</h5>
-                        <p>Start by adding your first transaction!</p>
-                    </div>
-                `;
-                return;
-            }
-
-            // Group transactions by date
-            const grouped = groupTransactionsByDate(data);
-
-            // Render grouped transactions
-            Object.entries(grouped).forEach(([date, transactions]) => {
-                const dateHeader = document.createElement('h5');
-                dateHeader.className = 'mb-3 mt-4';
-                dateHeader.textContent = formatDate(date);
-                container.appendChild(dateHeader);
-
-                transactions.forEach(transaction => {
-                    container.appendChild(createTransactionCard(transaction));
-                });
-            });
+            categories = data;
+            return data;
         })
         .catch(error => {
-            showToast('error', 'Failed to load transactions');
+            showToast('error', 'Failed to load categories');
             console.error('Error:', error);
+            return [];
+        });
+    }
+
+    function loadTransactions() {
+        // First load all categories, then load transactions
+        loadAllCategories().then(() => {
+            fetch('/api/transactions', {
+                headers: {
+                    'Authorization': 'Bearer ' + localStorage.getItem('jwt_token')
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                const container = document.querySelector('.transactions-container');
+                container.innerHTML = '';
+
+                if (data.length === 0) {
+                    container.innerHTML = `
+                        <div class="text-center text-muted my-5">
+                            <i class="fas fa-receipt fa-3x mb-3"></i>
+                            <h5>No transactions yet</h5>
+                            <p>Start by adding your first transaction!</p>
+                        </div>
+                    `;
+                    return;
+                }
+
+                // Group transactions by date
+                const grouped = groupTransactionsByDate(data);
+
+                // Render grouped transactions
+                Object.entries(grouped).forEach(([date, transactions]) => {
+                    const dateHeader = document.createElement('h5');
+                    dateHeader.className = 'mb-3 mt-4';
+                    dateHeader.textContent = formatDate(date);
+                    container.appendChild(dateHeader);
+
+                    transactions.forEach(transaction => {
+                        container.appendChild(createTransactionCard(transaction));
+                    });
+                });
+            })
+            .catch(error => {
+                showToast('error', 'Failed to load transactions');
+                console.error('Error:', error);
+            });
         });
     }
 
     function createTransactionCard(transaction) {
         const card = document.createElement('div');
         card.className = 'transaction-card p-3';
+        card.dataset.transactionId = transaction.id;
 
         let categoryName = 'Uncategorized';
         if (transaction.categoryId) {
@@ -330,11 +353,33 @@ document.addEventListener('DOMContentLoaded', function() {
 
         card.innerHTML = `
             <div class="d-flex justify-content-between align-items-center">
-                <div>
-                    <h6 class="mb-1">${transaction.description}</h6>
-                    <small class="text-muted">${categoryName}</small>
+                <div class="d-flex align-items-center">
+                    <input type="checkbox" class="form-check-input me-3 transaction-checkbox" data-transaction-id="${transaction.id}">
+                    <div>
+                        <h6 class="mb-1">${transaction.description}</h6>
+                    <small class="category-name">${categoryName}</small>
+                    </div>
                 </div>
-                <h5 class="mb-0 ${amountClass}">${amount}</h5>
+                <div class="d-flex align-items-center gap-2">
+                    <h5 class="mb-0 ${amountClass}">${amount}</h5>
+                    <div class="dropdown">
+                        <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                            <i class="fas fa-ellipsis-v"></i>
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-dark">
+                            <li><button class="dropdown-item edit-transaction" data-transaction-id="${transaction.id}">
+                                <i class="fas fa-edit me-2"></i>Edit
+                            </button></li>
+                            <li><button class="dropdown-item categorize-transaction" data-transaction-id="${transaction.id}">
+                                <i class="fas fa-tag me-2"></i>Categorize
+                            </button></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><button class="dropdown-item text-danger delete-transaction" data-transaction-id="${transaction.id}">
+                                <i class="fas fa-trash me-2"></i>Delete
+                            </button></li>
+                        </ul>
+                    </div>
+                </div>
             </div>
         `;
 
@@ -370,6 +415,347 @@ document.addEventListener('DOMContentLoaded', function() {
                 day: 'numeric'
             });
         }
+    }
+
+    // Initialize modals
+    const editTransactionModal = new bootstrap.Modal(document.getElementById('editTransactionModal'));
+    const bulkCategorizeModal = new bootstrap.Modal(document.getElementById('bulkCategorizeModal'));
+
+    // Track selected transactions for bulk operations
+    let selectedTransactions = new Set();
+
+    // Event delegation for transaction actions
+    document.addEventListener('click', function(e) {
+        if (e.target.classList.contains('edit-transaction') || e.target.closest('.edit-transaction')) {
+            const button = e.target.classList.contains('edit-transaction') ? e.target : e.target.closest('.edit-transaction');
+            const transactionId = button.dataset.transactionId;
+            editTransaction(transactionId);
+        }
+
+        if (e.target.classList.contains('categorize-transaction') || e.target.closest('.categorize-transaction')) {
+            const button = e.target.classList.contains('categorize-transaction') ? e.target : e.target.closest('.categorize-transaction');
+            const transactionId = button.dataset.transactionId;
+            showQuickCategorizeModal(transactionId);
+        }
+
+        if (e.target.classList.contains('delete-transaction') || e.target.closest('.delete-transaction')) {
+            const button = e.target.classList.contains('delete-transaction') ? e.target : e.target.closest('.delete-transaction');
+            const transactionId = button.dataset.transactionId;
+            deleteTransaction(transactionId);
+        }
+    });
+
+    // Handle transaction selection checkboxes
+    document.addEventListener('change', function(e) {
+        if (e.target.classList.contains('transaction-checkbox')) {
+            const transactionId = e.target.dataset.transactionId;
+            if (e.target.checked) {
+                selectedTransactions.add(transactionId);
+            } else {
+                selectedTransactions.delete(transactionId);
+            }
+            updateBulkActionButtons();
+        }
+    });
+
+    // Add bulk action buttons to the main content area, not navbar
+    function addBulkActionButtons() {
+        // Target the container-fluid div inside the section
+        const containerFluid = document.querySelector('section .container-fluid');
+        if (!containerFluid) {
+            console.error('Could not find container-fluid');
+            return;
+        }
+
+        const bulkActionsDiv = document.createElement('div');
+        bulkActionsDiv.id = 'bulkActions';
+        bulkActionsDiv.className = 'd-none mb-3';
+        bulkActionsDiv.style.cssText = 'position: relative; z-index: 1;';
+        bulkActionsDiv.innerHTML = `
+            <div class="bulk-selection-bar">
+                <div class="bulk-selection-content">
+                    <span class="selection-text">
+                        <i class="fas fa-check-circle me-2"></i>
+                        <span id="selectedCount">0</span> transaction(s) selected
+                    </span>
+                    <div class="bulk-actions">
+                        <button class="btn btn-sm btn-primary me-2" onclick="showBulkCategorizeModal()">
+                            <i class="fas fa-tag me-1"></i>Categorize
+                        </button>
+                        <button class="btn btn-sm btn-outline-light" onclick="clearSelection()">
+                            <i class="fas fa-times me-1"></i>Clear
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        // Insert right after the header div but before the transactions-container
+        const headerDiv = containerFluid.querySelector('.d-flex.justify-content-between');
+        if (headerDiv) {
+            headerDiv.parentNode.insertBefore(bulkActionsDiv, headerDiv.nextSibling);
+        } else {
+            // Fallback: insert at the beginning of container-fluid
+            containerFluid.insertBefore(bulkActionsDiv, containerFluid.firstChild);
+        }
+    }
+
+    // Update bulk action buttons visibility
+    function updateBulkActionButtons() {
+        const bulkActions = document.getElementById('bulkActions');
+        const selectedCount = document.getElementById('selectedCount');
+
+        if (!bulkActions) {
+            addBulkActionButtons();
+        }
+
+        if (selectedTransactions.size > 0) {
+            bulkActions.classList.remove('d-none');
+            selectedCount.textContent = selectedTransactions.size;
+        } else {
+            bulkActions.classList.add('d-none');
+        }
+    }
+
+    // Clear selection
+    window.clearSelection = function() {
+        selectedTransactions.clear();
+        document.querySelectorAll('.transaction-checkbox').forEach(cb => cb.checked = false);
+        updateBulkActionButtons();
+    };
+
+    // Edit transaction function
+    function editTransaction(transactionId) {
+        // Find transaction in loaded data
+        fetch(`/api/transactions/${transactionId}`, {
+            headers: {
+                'Authorization': 'Bearer ' + localStorage.getItem('jwt_token')
+            }
+        })
+        .then(response => response.json())
+        .then(transaction => {
+            // Populate edit form
+            document.getElementById('editTransactionId').value = transaction.id;
+            document.getElementById('editTransactionType').value = transaction.type;
+            document.getElementById('editAmount').value = transaction.amount.toFixed(2);
+            document.getElementById('editDescription').value = transaction.description;
+            document.getElementById('editDate').value = transaction.date;
+
+            // Load categories for the transaction type and set selected category
+            loadCategoriesForEdit(transaction.type, transaction.categoryId);
+
+            editTransactionModal.show();
+        })
+        .catch(error => {
+            showToast('error', 'Failed to load transaction details');
+            console.error('Error:', error);
+        });
+    }
+
+    // Load categories for edit modal
+    function loadCategoriesForEdit(type, selectedCategoryId = null) {
+        // Load all categories, not just filtered by type
+        fetch('/api/categories', {
+            headers: {
+                'Authorization': 'Bearer ' + localStorage.getItem('jwt_token')
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            const categorySelect = document.getElementById('editCategory');
+            categorySelect.innerHTML = '<option value="">No Category</option>';
+            data.forEach(category => {
+                const option = document.createElement('option');
+                option.value = category.id;
+                option.textContent = category.name;
+                if (category.id == selectedCategoryId) {
+                    option.selected = true;
+                }
+                categorySelect.appendChild(option);
+            });
+
+            // Also load for bulk categorize modal
+            loadCategoriesForBulk(data);
+        })
+        .catch(error => {
+            showToast('error', 'Failed to load categories');
+            console.error('Error:', error);
+        });
+    }
+
+    // Load categories for bulk categorize modal
+    function loadCategoriesForBulk(categoriesData) {
+        const categorySelect = document.getElementById('bulkCategory');
+        categorySelect.innerHTML = '<option value="">No Category</option>';
+        categoriesData.forEach(category => {
+            const option = document.createElement('option');
+            option.value = category.id;
+            option.textContent = category.name;
+            categorySelect.appendChild(option);
+        });
+    }
+
+    // Handle edit transaction type change
+    document.getElementById('editTransactionType').addEventListener('change', function() {
+        const type = this.value;
+        loadCategoriesForEdit(type);
+    });
+
+    // Handle update transaction
+    document.getElementById('updateTransaction').addEventListener('click', function() {
+        const form = document.getElementById('editTransactionForm');
+        if (!form.checkValidity()) {
+            form.reportValidity();
+            return;
+        }
+
+        const transactionId = document.getElementById('editTransactionId').value;
+        const categoryId = document.getElementById('editCategory').value;
+        let amount = document.getElementById('editAmount').value;
+        amount = parseFloat(amount).toFixed(2);
+
+        const formData = {
+            description: document.getElementById('editDescription').value,
+            amount: amount,
+            date: document.getElementById('editDate').value,
+            categoryId: categoryId || null,
+            type: document.getElementById('editTransactionType').value
+        };
+
+        fetch(`/api/transactions/${transactionId}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + localStorage.getItem('jwt_token')
+            },
+            body: JSON.stringify(formData)
+        })
+        .then(async response => {
+            const data = await response.json();
+            if (!response.ok) {
+                throw new Error(data.message || 'Failed to update transaction');
+            }
+            return data;
+        })
+        .then(data => {
+            showToast('success', 'Transaction updated successfully');
+            editTransactionModal.hide();
+            loadTransactions();
+        })
+        .catch(error => {
+            showToast('error', error.message);
+            console.error('Error:', error);
+        });
+    });
+
+    // Show bulk categorize modal
+    window.showBulkCategorizeModal = function() {
+        if (selectedTransactions.size === 0) {
+            showToast('error', 'Please select transactions to categorize');
+            return;
+        }
+
+        // Load categories before showing modal
+        loadCategoriesForBulkModal().then(() => {
+            document.getElementById('selectedCount').textContent = selectedTransactions.size;
+            bulkCategorizeModal.show();
+        });
+    };
+
+    // Load categories specifically for bulk categorize modal
+    function loadCategoriesForBulkModal() {
+        return fetch('/api/categories', {
+            headers: {
+                'Authorization': 'Bearer ' + localStorage.getItem('jwt_token')
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            loadCategoriesForBulk(data);
+            return data;
+        })
+        .catch(error => {
+            showToast('error', 'Failed to load categories');
+            console.error('Error:', error);
+            return [];
+        });
+    }
+
+    // Handle bulk categorize
+    document.getElementById('bulkCategorizeBtn').addEventListener('click', function() {
+        const categoryId = document.getElementById('bulkCategory').value;
+        const transactionIds = Array.from(selectedTransactions);
+
+        const requestData = {
+            transactionIds: transactionIds,
+            categoryId: categoryId || null
+        };
+
+        fetch('/api/transactions/bulk-categorize', {
+            method: 'PATCH',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + localStorage.getItem('jwt_token')
+            },
+            body: JSON.stringify(requestData)
+        })
+        .then(async response => {
+            const data = await response.json();
+            if (!response.ok) {
+                throw new Error(data.message || 'Failed to categorize transactions');
+            }
+            return data;
+        })
+        .then(data => {
+            const categoryName = categoryId ?
+                document.querySelector(`#bulkCategory option[value="${categoryId}"]`).textContent :
+                'No Category';
+            showToast('success', `${transactionIds.length} transaction(s) categorized as "${categoryName}"`);
+            bulkCategorizeModal.hide();
+            clearSelection();
+            loadTransactions();
+        })
+        .catch(error => {
+            showToast('error', error.message);
+            console.error('Error:', error);
+        });
+    });
+
+    // Quick categorize function for individual transactions
+    function showQuickCategorizeModal(transactionId) {
+        selectedTransactions.clear();
+        selectedTransactions.add(transactionId);
+
+        // Load categories before showing modal
+        loadCategoriesForBulkModal().then(() => {
+            document.getElementById('selectedCount').textContent = 1;
+            bulkCategorizeModal.show();
+        });
+    }
+
+    // Delete transaction function
+    function deleteTransaction(transactionId) {
+        if (!confirm('Are you sure you want to delete this transaction?')) {
+            return;
+        }
+
+        fetch(`/api/transactions/${transactionId}`, {
+            method: 'DELETE',
+            headers: {
+                'Authorization': 'Bearer ' + localStorage.getItem('jwt_token')
+            }
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Failed to delete transaction');
+            }
+            showToast('success', 'Transaction deleted successfully');
+            loadTransactions();
+        })
+        .catch(error => {
+            showToast('error', error.message);
+            console.error('Error:', error);
+        });
     }
 
     // M-Pesa Statement Upload Functionality

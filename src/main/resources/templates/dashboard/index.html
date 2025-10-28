@@ -321,15 +321,27 @@
                 border-radius: 1rem;
                 padding: 1rem 1.25rem;
                 border: 1px solid rgba(255,255,255,0.06);
-                height: 300px;
+                height: 320px;
                 display: flex;
                 flex-direction: column;
                 justify-content: flex-start;
             }
 
+            .chart-card.large {
+                height: 320px;
+            }
+
+            .chart-card.modern-donut {
+                height: 320px;
+                background: transparent;
+                border: 1px solid rgba(255,255,255,0.06);
+            }
+
             .chart-card .chart-canvas { flex: 1 1 auto; height: 100%; }
             @media (max-width: 992px) {
-                .chart-card { height: 260px; }
+                .chart-card { height: 280px; }
+                .chart-card.large { height: 280px; }
+                .chart-card.modern-donut { height: 280px; }
             }
 
             .chart-header {
@@ -579,8 +591,8 @@
 
             <!-- Two Charts Row: center + right -->
             <div class="chart-row row">
-                <div class="col-md-5 offset-md-1">
-                    <div class="chart-card">
+                <div class="col-md-7">
+                    <div class="chart-card large">
                         <div class="chart-header">
                             <div class="chart-title">Financial Overview</div>
                             <div class="chart-legend">
@@ -601,7 +613,7 @@
                 </div>
 
                 <div class="col-md-5">
-                    <div class="chart-card">
+                    <div class="chart-card modern-donut">
                         <div class="chart-header">
                             <div class="chart-title">Spending Breakdown</div>
                             <div class="chart-legend">
@@ -615,7 +627,7 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="chart-canvas d-flex align-items-center">
+                        <div class="chart-canvas">
                             <canvas id="modernChart"></canvas>
                         </div>
                     </div>

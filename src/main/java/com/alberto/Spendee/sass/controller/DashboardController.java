@@ -29,7 +29,7 @@ public class DashboardController {
     @GetMapping("/recent-transactions")
     public ResponseEntity<List<TransactionDto>> getRecentTransactions() {
         String userEmail = SecurityContextHolder.getContext().getAuthentication().getName();
-        List<Transaction> transactions = transactionService.getRecentTransactions(userEmail, 5);
+        List<Transaction> transactions = transactionService.getRecentTransactions(userEmail, 10);
         return ResponseEntity.ok(transactions.stream()
             .map(transactionService::convertToDto)
             .collect(Collectors.toList()));

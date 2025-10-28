@@ -129,11 +129,48 @@ document.addEventListener('DOMContentLoaded', function() {
     // Set default date to today
     document.getElementById('date').valueAsDate = new Date();
 
-    // Load categories when transaction type changes
-    document.getElementById('transactionType').addEventListener('change', loadCategories);
+    // Wire the new type-cards UI (two clickable cards) to the hidden transactionType input
+    (function wireTypeCards() {
+        const transactionTypeInput = document.getElementById('transactionType');
+        const typeCardsContainer = document.getElementById('transactionTypeCards');
+        if (!transactionTypeInput || !typeCardsContainer) {
+            // If modal isn't present on this page, fall back to older behavior (if a select exists)
+            const sel = document.getElementById('transactionType');
+            if (sel) {
+                sel.addEventListener('change', loadCategories);
+                loadCategories();
+            }
+            return;
+        }
 
-    // Initial load of categories
-    loadCategories();
+        const typeCards = Array.from(typeCardsContainer.querySelectorAll('.type-card'));
+
+        function setTransactionType(type) {
+            transactionTypeInput.value = type;
+            typeCards.forEach(card => {
+                const isActive = card.dataset.type === type;
+                card.classList.toggle('active', isActive);
+                card.setAttribute('aria-pressed', isActive ? 'true' : 'false');
+            });
+            // Load categories for the selected type
+            loadCategories();
+        }
+
+        // Attach click & keyboard handlers for accessibility
+        typeCards.forEach(card => {
+            card.addEventListener('click', () => setTransactionType(card.dataset.type));
+            card.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    setTransactionType(card.dataset.type);
+                }
+            });
+        });
+
+        // Initialize UI from hidden input value (default already set in template)
+        const initial = transactionTypeInput.value || 'EXPENSE';
+        setTransactionType(initial);
+    })();
 
     // Format amount input as user types
     const amountInput = document.getElementById('amount');

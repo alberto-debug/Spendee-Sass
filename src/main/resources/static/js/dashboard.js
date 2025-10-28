@@ -11,13 +11,23 @@ document.addEventListener('DOMContentLoaded', () => {
     const recentTransactionsContainer = document.getElementById('recentTransactions');
     const loadingIndicator = document.getElementById('loadingIndicator');
     const noTransactionsMessage = document.getElementById('noTransactionsMessage');
+    // Floating AI elements
+    const aiBtn = document.getElementById('aiAssistantBtn');
+    const aiModal = document.getElementById('aiModal');
+    const aiBackdrop = document.getElementById('aiModalBackdrop');
+    const aiClose = document.getElementById('aiModalClose');
+    const aiRefreshBtn = document.getElementById('aiRefreshBtn');
+    const aiMessages = document.getElementById('aiMessages');
 
     // API endpoints
     const API_URL = '/api';
     const DASHBOARD_SUMMARY_ENDPOINT = `${API_URL}/dashboard/summary`;
     const RECENT_TRANSACTIONS_ENDPOINT = `${API_URL}/dashboard/recent-transactions`;
+    const SUGGESTIONS_ENDPOINT = `${API_URL}/suggestions`;
 
     let financialChart = null;
+    let modernChart = null;
+    let suggestionsLoaded = false;
 
     // Get user's preferred currency from localStorage
     function getUserCurrency() {
@@ -84,9 +94,13 @@ document.addEventListener('DOMContentLoaded', () => {
             return Promise.all([
                 fetchDashboardSummary(),
                 fetchRecentTransactions()
+                // Lazy-load suggestions when the user opens the assistant
             ]);
         })
-        .then(() => hideLoading())
+        .then(() => {
+            hideLoading();
+            setupAiAssistant();
+        })
         .catch(error => {
             console.error('Error initializing dashboard:', error);
             hideLoading();
@@ -103,6 +117,8 @@ document.addEventListener('DOMContentLoaded', () => {
             .then(summary => {
                 updateDashboardSummary(summary);
                 initializeChart(summary);
+                // initialize the modern/donut chart on the right
+                initializeModernChart(summary);
             })
             .catch(error => {
                 console.error('Error fetching dashboard summary:', error);
@@ -122,6 +138,40 @@ document.addEventListener('DOMContentLoaded', () => {
             .catch(error => {
                 console.error('Error fetching recent transactions:', error);
                 showError('Failed to load recent transactions');
+            });
+    }
+
+    /**
+     * Fetch AI suggestions (lazy on modal open)
+     */
+    function fetchSuggestions() {
+        if (!aiMessages) return Promise.resolve();
+        // Loading message
+        aiMessages.insertAdjacentHTML('beforeend', `
+            <div class="ai-msg" data-ai-loading>
+                <div class="ai-avatar"><i class="fas fa-robot"></i></div>
+                <div class="ai-bubble"><p>Analyzing your spending...</p><div class="ai-meta">Assistant • loading</div></div>
+            </div>
+        `);
+        return fetch(SUGGESTIONS_ENDPOINT)
+            .then(handleResponse)
+            .then(suggestions => {
+                // Remove loading msg
+                const loading = aiMessages.querySelector('[data-ai-loading]');
+                if (loading) loading.remove();
+                renderSuggestionsInChat(suggestions);
+                suggestionsLoaded = true;
+            })
+            .catch(err => {
+                console.error('Error fetching suggestions:', err);
+                const loading = aiMessages.querySelector('[data-ai-loading]');
+                if (loading) loading.remove();
+                aiMessages.insertAdjacentHTML('beforeend', `
+                    <div class="ai-msg">
+                        <div class="ai-avatar"><i class="fas fa-robot"></i></div>
+                        <div class="ai-bubble"><p class="text-muted">No suggestions available right now.</p></div>
+                    </div>
+                `);
             });
     }
 
@@ -258,107 +308,41 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    function updateDashboardSummary(summary) {
-        if (incomeElement) incomeElement.textContent = formatCurrency(summary.monthlyIncome);
-        if (expenseElement) expenseElement.textContent = formatCurrency(summary.monthlyExpenses);
-        if (balanceElement) balanceElement.textContent = formatCurrency(summary.monthlyIncome - summary.monthlyExpenses);
+    // Initialize a second, more modern chart (doughnut) showing income vs expenses share
+    function initializeModernChart(summary) {
+        const ctx = document.getElementById('modernChart')?.getContext('2d');
+        if (!ctx) return;
 
-        // Update change indicators
-        updateChangeIndicator('incomeChange', summary.incomeChange);
-        updateChangeIndicator('expenseChange', summary.expenseChange);
-    }
-
-    function updateRecentTransactions(transactions) {
-        if (!recentTransactionsContainer) return;
-
-        if (!transactions || transactions.length === 0) {
-            showNoTransactions();
-            return;
+        if (modernChart instanceof Chart) {
+            modernChart.destroy();
         }
 
-        recentTransactionsContainer.innerHTML = transactions
-            .map(transaction => createTransactionHTML(transaction))
-            .join('');
-    }
+        const income = Number(summary.monthlyIncome) || 0;
+        const expenses = Number(summary.monthlyExpenses) || 0;
 
-    function createTransactionHTML(transaction) {
-        const typeClass = transaction.type.toLowerCase() === 'income' ? 'text-green-500' : 'text-red-500';
-        const amount = transaction.type.toLowerCase() === 'income' ?
-            `+${formatCurrency(transaction.amount)}` :
-            `-${formatCurrency(transaction.amount)}`;
+        modernChart = new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Income', 'Expenses'],
+                datasets: [{
+                    data: [income, expenses],
+                    backgroundColor: ['#10B981', '#EF4444'],
+                    hoverBackgroundColor: ['#059669', '#DC2626'],
+                    borderWidth: 0
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                cutout: '60%',
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: context => {
+                                const value = context.parsed || 0;
+                                const formatted = getCurrencySymbol(getUserCurrency()) + Number(value).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                                return `${context.label}: ${formatted}`;
 
-        return `
-            <div class="transaction-item flex justify-between items-center p-3 border-b">
-                <div class="flex flex-col">
-                    <span class="font-medium">${transaction.description}</span>
-                    <span class="text-sm text-gray-500">${formatDate(transaction.date)}</span>
-                </div>
-                <span class="${typeClass} font-medium">${amount}</span>
-            </div>
-        `;
-    }
-
-    function formatCurrency(amount) {
-        const userCurrency = getUserCurrency();
-        console.log('Formatting currency with:', userCurrency);
-        return new Intl.NumberFormat('en-US', {
-            style: 'currency',
-            currency: userCurrency,
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2
-        }).format(amount);
-    }
-
-    function formatDate(dateString) {
-        return new Date(dateString).toLocaleDateString('en-IN', {
-            day: 'numeric',
-            month: 'short',
-            year: 'numeric'
-        });
-    }
-
-    function updateChangeIndicator(elementId, changePercentage) {
-        const element = document.getElementById(elementId);
-        if (!element) return;
-
-        const isPositive = changePercentage > 0;
-        const changeClass = isPositive ? 'text-green-500' : 'text-red-500';
-        const arrowIcon = isPositive ? '↑' : '↓';
-
-        element.className = `change-indicator ${changeClass}`;
-        element.textContent = `${arrowIcon} ${Math.abs(changePercentage).toFixed(1)}%`;
-    }
-
-    function showLoading() {
-        if (loadingIndicator) loadingIndicator.classList.remove('hidden');
-    }
-
-    function hideLoading() {
-        if (loadingIndicator) loadingIndicator.classList.add('hidden');
-    }
-
-    function showError(message) {
-        // Implement error display logic
-        const errorElement = document.getElementById('errorMessage');
-        if (errorElement) {
-            errorElement.textContent = message;
-            errorElement.classList.remove('hidden');
-        }
-    }
-
-    function showNoTransactions() {
-        if (noTransactionsMessage) {
-            noTransactionsMessage.classList.remove('hidden');
-        }
-        if (recentTransactionsContainer) {
-            recentTransactionsContainer.innerHTML = '';
-        }
-    }
-
-    function handleResponse(response) {
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        return response.json();
-    }
-});

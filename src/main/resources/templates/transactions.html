@@ -19,6 +19,30 @@
                 position: relative;
                 z-index: 1;
             }
+            /* Type card UI for add transaction modal */
+            .type-cards { display:flex; gap:0.75rem; }
+            .type-card {
+                flex:1 1 0;
+                cursor:pointer;
+                padding:0.75rem 1rem;
+                border-radius:0.75rem;
+                border:1px solid rgba(255,255,255,0.06);
+                display:flex;
+                align-items:center;
+                justify-content:center;
+                gap:0.75rem;
+                transition: transform .12s ease, box-shadow .12s ease, border-color .12s ease;
+                user-select:none;
+            }
+            .type-card .type-label { font-weight:600; color:#fff; }
+            .type-card .type-icon { font-size:1.1rem; }
+            .type-card.type-income { background: linear-gradient(135deg, rgba(34,197,94,0.12), rgba(34,197,94,0.06)); border-color: rgba(34,197,94,0.25); }
+            .type-card.type-expense { background: linear-gradient(135deg, rgba(239,68,68,0.12), rgba(239,68,68,0.06)); border-color: rgba(239,68,68,0.25); }
+            .type-card.active { box-shadow: 0 8px 20px rgba(0,0,0,0.45); transform: translateY(-3px); border-width:2px; }
+            .type-card.type-income.active { border-color: rgba(34,197,94,0.8); }
+            .type-card.type-expense.active { border-color: rgba(239,68,68,0.8); }
+            .type-card:focus { outline:none; box-shadow: 0 0 0 3px rgba(99,102,241,0.08); }
+
             .add-transaction-btn {
                 background: linear-gradient(135deg, #6366F1 0%, #4338CA 100%);
                 border: none;
@@ -197,6 +221,17 @@
             small.category-name {
                 color: #a8b3cf !important;
             }
+
+            /* Brighten transaction list text for readability */
+            .transaction-card h6 {
+                color: rgba(255, 255, 255, 0.95);
+            }
+            .transactions-container h5 {
+                color: rgba(255, 255, 255, 0.88);
+            }
+            .transaction-card .text-muted {
+                color: rgba(255, 255, 255, 0.7) !important;
+            }
         </style>
     </th:block>
 </head>
@@ -230,11 +265,19 @@
                     <div class="modal-body">
                         <form id="addTransactionForm">
                             <div class="mb-3">
-                                <label for="transactionType" class="form-label">Type</label>
-                                <select class="form-control bg-dark text-white" id="transactionType" name="type" required>
-                                    <option value="EXPENSE">Expense</option>
-                                    <option value="INCOME">Income</option>
-                                </select>
+                                <label class="form-label">Type</label>
+                                <div class="type-cards" id="transactionTypeCards" role="tablist" aria-label="Transaction Type">
+                                    <div class="type-card type-expense active" tabindex="0" data-type="EXPENSE" aria-pressed="true">
+                                        <i class="fas fa-arrow-up type-icon text-danger"></i>
+                                        <span class="type-label">Expense</span>
+                                    </div>
+                                    <div class="type-card type-income" tabindex="0" data-type="INCOME" aria-pressed="false">
+                                        <i class="fas fa-arrow-down type-icon text-success"></i>
+                                        <span class="type-label">Income</span>
+                                    </div>
+                                </div>
+                                <!-- hidden input kept for compatibility with existing JS -->
+                                <input type="hidden" id="transactionType" name="type" value="EXPENSE" required>
                             </div>
                             <div class="mb-3">
                                 <label for="amount" class="form-label">Amount</label>

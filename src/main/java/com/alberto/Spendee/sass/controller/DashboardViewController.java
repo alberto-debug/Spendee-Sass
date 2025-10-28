@@ -29,7 +29,7 @@ public class DashboardViewController {
 
         // Get dashboard data
         DashboardSummaryDto dashboardSummary = transactionService.getDashboardSummary(userEmail);
-        var recentTransactions = transactionService.getRecentTransactions(userEmail, 5); // Get last 5 transactions
+        var recentTransactions = transactionService.getRecentTransactions(userEmail, 10); // Get last 10 transactions
 
         // Add data to the model
         model.addAttribute("totalIncome", dashboardSummary.getTotalIncome());

@@ -16,6 +16,9 @@
                 grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
                 gap: 2rem;
             }
+            .categories-grid .full-span {
+                grid-column: 1 / -1;
+            }
             .category-card {
                 position: relative;
                 background: rgba(36, 37, 42, 0.85);
@@ -23,9 +26,19 @@
                 box-shadow: 0 8px 32px rgba(99, 102, 241, 0.12);
                 border: 1px solid rgba(99, 102, 241, 0.15);
                 padding: 2rem 1.5rem 1.5rem 1.5rem;
-                transition: transform 0.2s, box-shadow 0.2s;
+                transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
                 overflow: hidden;
             }
+            .category-card::after {
+                content: '';
+                position: absolute;
+                inset: 0;
+                pointer-events: none;
+                background: radial-gradient(800px 200px at var(--mx, 0px) var(--my, 0px), rgba(99,102,241,0.12), transparent 60%);
+                transition: opacity 0.2s;
+                opacity: 0;
+            }
+            .category-card:hover::after { opacity: 1; }
             .category-card:hover {
                 transform: translateY(-6px) scale(1.03);
                 box-shadow: 0 16px 40px rgba(99, 102, 241, 0.22);
@@ -93,26 +106,25 @@
             }
             /* Responsive adjustments */
             @media (max-width: 767.98px) {
-                .main-content {
-                    margin-top: 20px;
-                }
-                .categories-grid {
-                    gap: 1.2rem;
-                }
+                .main-content { margin-top: 20px; }
+                .categories-grid { gap: 1.2rem; }
             }
             /* Modern Add Category button */
-            .btn-modern-add {
+            .btn-modern-add,
+            .add-category-btn {
                 background: linear-gradient(135deg, #6366F1 0%, #4338CA 100%);
                 color: #fff;
                 font-weight: 500;
                 border-radius: 1rem;
                 box-shadow: 0 4px 16px rgba(99, 102, 241, 0.18);
                 border: none;
-                transition: background 0.2s, box-shadow 0.2s;
+                transition: background 0.2s, box-shadow 0.2s, opacity 0.2s;
             }
-            .btn-modern-add:hover {
+            .btn-modern-add:hover,
+            .add-category-btn:hover {
                 background: linear-gradient(135deg, #4F46E5 0%, #3730A3 100%);
                 box-shadow: 0 8px 24px rgba(99, 102, 241, 0.28);
+                opacity: 0.95;
             }
 
             /* Dark theme for modals */
@@ -123,94 +135,32 @@
                 box-shadow: 0 15px 35px rgba(0, 0, 0, 0.4);
                 color: white;
             }
+            .modal-header { border-bottom: 1px solid rgba(255, 255, 255, 0.1); }
+            .modal-footer { border-top: 1px solid rgba(255, 255, 255, 0.1); }
+            .modal-title { color: #fff; font-weight: 600; }
 
-            .modal-header {
-                border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-            }
-
-            .modal-footer {
-                border-top: 1px solid rgba(255, 255, 255, 0.1);
-            }
-
-            .modal-title {
-                color: #fff;
-                font-weight: 600;
-            }
-
-            .form-label {
-                color: rgba(255, 255, 255, 0.8);
-                font-weight: 500;
-            }
-
+            .form-label { color: rgba(255, 255, 255, 0.8); font-weight: 500; }
             .form-control, .form-select {
                 background: rgba(255, 255, 255, 0.07);
                 border: 1px solid rgba(255, 255, 255, 0.1);
                 color: white;
                 border-radius: 8px;
             }
-
             .form-control:focus, .form-select:focus {
                 background: rgba(255, 255, 255, 0.1);
                 border-color: rgba(255, 255, 255, 0.2);
                 box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
                 color: white;
             }
-
-            .form-select option {
-                background: #1a1a1a;
-                color: white;
-            }
-
-            .form-control::placeholder {
-                color: rgba(255, 255, 255, 0.5);
-            }
-
-            .input-group-text {
-                background: rgba(255, 255, 255, 0.07);
-                border: 1px solid rgba(255, 255, 255, 0.1);
-                color: white;
-            }
-
-            .color-preview {
-                width: 20px;
-                height: 20px;
-                border-radius: 50%;
-                border: 2px solid #fff;
-            }
-
-            .btn-close {
-                filter: invert(1);
-            }
-
-            .btn-primary {
-                background: linear-gradient(135deg, #6366F1 0%, #4338CA 100%);
-                border: none;
-                box-shadow: 0 4px 12px rgba(99, 102, 241, 0.2);
-            }
-
-            .btn-primary:hover {
-                background: linear-gradient(135deg, #4F46E5 0%, #3730A3 100%);
-            }
-
-            .btn-secondary {
-                background: rgba(255, 255, 255, 0.1);
-                border: none;
-                color: white;
-            }
-
-            .btn-secondary:hover {
-                background: rgba(255, 255, 255, 0.15);
-                color: white;
-            }
-
-            .add-category-btn {
-                background: linear-gradient(135deg, #6366F1 0%, #4338CA 100%);
-                border: none;
-                transition: opacity 0.2s;
-            }
-            .add-category-btn:hover {
-                opacity: 0.9;
-            }
+            .form-select option { background: #1a1a1a; color: white; }
+            .form-control::placeholder { color: rgba(255, 255, 255, 0.5); }
+            .input-group-text { background: rgba(255, 255, 255, 0.07); border: 1px solid rgba(255, 255, 255, 0.1); color: white; }
+            .color-preview { width: 20px; height: 20px; border-radius: 50%; border: 2px solid #fff; }
+            .btn-close { filter: invert(1); }
+            .btn-primary { background: linear-gradient(135deg, #6366F1 0%, #4338CA 100%); border: none; box-shadow: 0 4px 12px rgba(99, 102, 241, 0.2); }
+            .btn-primary:hover { background: linear-gradient(135deg, #4F46E5 0%, #3730A3 100%); }
+            .btn-secondary { background: rgba(255, 255, 255, 0.1); border: none; color: white; }
+            .btn-secondary:hover { background: rgba(255, 255, 255, 0.15); color: white; }
         </style>
     </th:block>
 </head>
@@ -223,14 +173,15 @@
                     <i class="fas fa-plus me-2"></i>Add Category
                 </button>
             </div>
-            <div class="row g-4" id="categoriesContainer">
-                <!-- Categories will be loaded here dynamically -->
-                <div class="col-12 text-center py-5" id="loadingIndicator">
+            <!-- Switch to CSS grid for beautiful cards -->
+            <div class="categories-grid" id="categoriesContainer">
+                <!-- Loading and empty states span full grid -->
+                <div class="full-span text-center py-5" id="loadingIndicator">
                     <div class="spinner-border text-primary" role="status">
                         <span class="visually-hidden">Loading...</span>
                     </div>
                 </div>
-                <div class="col-12 text-center py-5 d-none" id="noCategoriesMessage">
+                <div class="full-span text-center py-5 d-none" id="noCategoriesMessage">
                     <p class="text-muted">No categories found. Create your first category!</p>
                 </div>
             </div>
@@ -385,6 +336,16 @@
 
     <th:block th:fragment="scripts">
         <script src="/js/categories.js"></script>
+        <script>
+            // Enhance card hover lighting effect based on mouse position
+            document.addEventListener('mousemove', (e) => {
+                document.querySelectorAll('.category-card').forEach(card => {
+                    const rect = card.getBoundingClientRect();
+                    card.style.setProperty('--mx', `${e.clientX - rect.left}px`);
+                    card.style.setProperty('--my', `${e.clientY - rect.top}px`);
+                });
+            });
+        </script>
     </th:block>
 </body>
 </html>

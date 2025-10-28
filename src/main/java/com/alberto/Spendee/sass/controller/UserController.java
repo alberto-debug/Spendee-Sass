@@ -3,6 +3,8 @@ package com.alberto.Spendee.sass.controller;
 import com.alberto.Spendee.sass.domain.user.User;
 import com.alberto.Spendee.sass.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.CacheControl;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -17,6 +19,7 @@ import java.io.ByteArrayOutputStream;
 import java.security.Principal;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 @RestController
 @RequestMapping("/api/user")
@@ -71,7 +74,7 @@ public class UserController {
         return ResponseEntity.ok(result);
     }
 
-    // Serve user photo
+    // Serve user photo with no-cache headers to avoid stale images after update
     @GetMapping("/photo")
     public ResponseEntity<?> getPhoto(Principal principal) {
         User user = userRepository.findByEmail(principal.getName()).orElse(null);
@@ -80,6 +83,9 @@ public class UserController {
         }
         return ResponseEntity.ok()
                 .contentType(MediaType.IMAGE_JPEG)
+                .cacheControl(CacheControl.noStore().mustRevalidate())
+                .header(HttpHeaders.PRAGMA, "no-cache")
+                .header(HttpHeaders.EXPIRES, "0")
                 .body(user.getPhoto());
     }
 

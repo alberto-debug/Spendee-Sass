@@ -362,10 +362,43 @@ document.addEventListener('DOMContentLoaded', function() {
                         container.appendChild(createTransactionCard(transaction));
                     });
                 });
+
+                // Fix dropdown z-index issues after rendering
+                fixDropdownZIndex();
             })
             .catch(error => {
                 showToast('error', 'Failed to load transactions');
                 console.error('Error:', error);
+            });
+        });
+    }
+
+    // Function to fix dropdown z-index dynamically
+    function fixDropdownZIndex() {
+        // Get all transaction cards
+        const cards = document.querySelectorAll('.transaction-card');
+
+        cards.forEach((card, index) => {
+            const dropdown = card.querySelector('.dropdown');
+            if (!dropdown) return;
+
+            const dropdownToggle = dropdown.querySelector('[data-bs-toggle="dropdown"]');
+            if (!dropdownToggle) return;
+
+            // Listen for dropdown show event
+            dropdownToggle.addEventListener('show.bs.dropdown', function() {
+                // Reset all cards to base z-index
+                cards.forEach(c => c.style.zIndex = '1');
+                // Boost this card's z-index way above everything
+                card.style.zIndex = '9999';
+            });
+
+            // Listen for dropdown hide event
+            dropdownToggle.addEventListener('hide.bs.dropdown', function() {
+                // Reset z-index after dropdown closes
+                setTimeout(() => {
+                    card.style.zIndex = '1';
+                }, 300);
             });
         });
     }

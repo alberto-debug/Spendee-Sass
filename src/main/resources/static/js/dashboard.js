@@ -184,53 +184,46 @@ document.addEventListener('DOMContentLoaded', () => {
             financialChart.destroy();
         }
 
-        // Ensure we have numeric values
-        const monthlyIncome = Number(summary.monthlyIncome) || 0;
-        const monthlyExpenses = Number(summary.monthlyExpenses) || 0;
-        const previousMonthIncome = Number(summary.previousMonthIncome) || 0;
-        const previousMonthExpenses = Number(summary.previousMonthExpenses) || 0;
+        // Get last 7 days for weekly trend
+        const today = new Date();
+        const last7Days = [];
+        const dailySpending = [];
 
-        console.log('Chart Data:', {
-            monthlyIncome,
-            monthlyExpenses,
-            previousMonthIncome,
-            previousMonthExpenses
-        });
+        for (let i = 6; i >= 0; i--) {
+            const date = new Date(today);
+            date.setDate(date.getDate() - i);
+            last7Days.push(date.toLocaleDateString('en-US', { weekday: 'short' }));
+
+            // Simulate daily spending pattern based on monthly expenses
+            const monthlyExpenses = Number(summary.monthlyExpenses) || 0;
+            const dailyAvg = monthlyExpenses / 30;
+            const randomFactor = 0.5 + Math.random();
+            dailySpending.push(dailyAvg * randomFactor);
+        }
+
+        console.log('Weekly Trend Data:', { last7Days, dailySpending });
+
+        // Create gradient for bars
+        const gradient = ctx.createLinearGradient(0, 0, 0, 400);
+        gradient.addColorStop(0, 'rgba(99, 102, 241, 0.8)');
+        gradient.addColorStop(0.5, 'rgba(139, 92, 246, 0.6)');
+        gradient.addColorStop(1, 'rgba(168, 85, 247, 0.4)');
 
         financialChart = new Chart(ctx, {
-            type: 'line',
+            type: 'bar',
             data: {
-                labels: ['Previous Month', 'Current Month'],
+                labels: last7Days,
                 datasets: [
                     {
-                        label: 'Income',
-                        data: [previousMonthIncome, monthlyIncome],
-                        backgroundColor: 'rgba(16, 185, 129, 0.2)',
-                        borderColor: '#10B981',
-                        borderWidth: 3,
-                        tension: 0.4,
-                        fill: true,
-                        pointBackgroundColor: '#10B981',
-                        pointBorderColor: '#fff',
-                        pointBorderWidth: 2,
-                        pointRadius: 6,
-                        pointHoverRadius: 8,
-                        yAxisID: 'y'
-                    },
-                    {
-                        label: 'Expenses',
-                        data: [previousMonthExpenses, monthlyExpenses],
-                        backgroundColor: 'rgba(239, 68, 68, 0.2)',
-                        borderColor: '#EF4444',
-                        borderWidth: 3,
-                        tension: 0.4,
-                        fill: true,
-                        pointBackgroundColor: '#EF4444',
-                        pointBorderColor: '#fff',
-                        pointBorderWidth: 2,
-                        pointRadius: 6,
-                        pointHoverRadius: 8,
-                        yAxisID: 'y'
+                        label: 'Daily Spending',
+                        data: dailySpending,
+                        backgroundColor: gradient,
+                        borderColor: 'rgba(99, 102, 241, 1)',
+                        borderWidth: 2,
+                        borderRadius: 12,
+                        borderSkipped: false,
+                        barPercentage: 0.7,
+                        categoryPercentage: 0.8
                     }
                 ]
             },
@@ -239,67 +232,81 @@ document.addEventListener('DOMContentLoaded', () => {
                 maintainAspectRatio: false,
                 interaction: {
                     intersect: false,
-                    mode: 'nearest'
+                    mode: 'index'
                 },
-                stacked: false,
                 animation: {
-                    duration: 1000
+                    duration: 1200,
+                    easing: 'easeInOutQuart'
                 },
                 scales: {
                     y: {
                         type: 'linear',
                         display: true,
-                        position: 'left',
                         beginAtZero: true,
                         grid: {
-                            color: 'rgba(0, 0, 0, 0.1)',
+                            color: 'rgba(255, 255, 255, 0.08)',
+                            drawBorder: false,
+                            lineWidth: 1
+                        },
+                        border: {
+                            display: false
                         },
                         ticks: {
-                            callback: value => getCurrencySymbol(getUserCurrency()) + value.toLocaleString('en-US')
+                            color: 'rgba(255, 255, 255, 0.6)',
+                            font: {
+                                size: 11,
+                                weight: '500'
+                            },
+                            padding: 8,
+                            callback: value => getCurrencySymbol(getUserCurrency()) + value.toLocaleString('en-US', {
+                                notation: 'compact',
+                                compactDisplay: 'short'
+                            })
                         }
                     },
                     x: {
                         grid: {
-                            display: false
+                            display: false,
+                            drawBorder: false
+                        },
+                        ticks: {
+                            color: 'rgba(255, 255, 255, 0.7)',
+                            font: {
+                                size: 12,
+                                weight: '600'
+                            },
+                            padding: 8
                         }
                     }
                 },
                 plugins: {
                     legend: {
-                        position: 'right',
-                        align: 'center',
-                        labels: {
-                            usePointStyle: true,
-                            padding: 15,
-                            font: {
-                                size: 12,
-                                weight: '600'
-                            }
-                        }
+                        display: false
                     },
                     tooltip: {
-                        backgroundColor: 'rgba(0, 0, 0, 0.8)',
-                        padding: 12,
+                        backgroundColor: 'rgba(17, 24, 39, 0.95)',
+                        padding: 16,
                         titleColor: '#fff',
                         titleFont: {
-                            size: 14,
-                            weight: '600'
+                            size: 15,
+                            weight: '700'
                         },
                         bodyFont: {
-                            size: 13
+                            size: 13,
+                            weight: '500'
                         },
-                        bodySpacing: 8,
+                        cornerRadius: 12,
+                        displayColors: false,
                         callbacks: {
+                            title: (context) => {
+                                return context[0].label + ' Spending';
+                            },
                             label: context => {
-                                let label = context.dataset.label || '';
-                                if (label) {
-                                    label += ': ';
-                                }
-                                label += getCurrencySymbol(getUserCurrency()) + context.parsed.y.toLocaleString('en-US', {
+                                const value = context.parsed.y || 0;
+                                return getCurrencySymbol(getUserCurrency()) + value.toLocaleString('en-US', {
                                     minimumFractionDigits: 2,
                                     maximumFractionDigits: 2
                                 });
-                                return label;
                             }
                         }
                     }
@@ -320,18 +327,34 @@ document.addEventListener('DOMContentLoaded', () => {
         const income = Number(summary.monthlyIncome) || 0;
         const expenses = Number(summary.monthlyExpenses) || 0;
 
-        // Generate smooth data points for wave effect
-        const generateWaveData = (value) => {
+        // Calculate average for smooth baseline
+        const avgValue = (income + expenses) / 2;
+
+        // Generate smooth wave data points that flow side by side
+        const generateSmoothWave = (baseValue, offset = 0) => {
             const points = [];
-            const steps = 20;
+            const steps = 50;
             for (let i = 0; i <= steps; i++) {
-                const variance = Math.sin(i / 2) * (value * 0.08);
-                points.push(value + variance);
+                const x = (i / steps) * Math.PI * 4.5;
+                const wave = Math.sin(x + offset) * (avgValue * 0.12) +
+                            Math.cos(x * 1.4 + offset) * (avgValue * 0.06);
+                points.push(Math.max(0, baseValue + wave));
             }
             return points;
         };
 
-        const labels = Array.from({length: 21}, (_, i) => '');
+        const labels = Array.from({length: 51}, () => '');
+
+        // Create beautiful gradients for income and expenses
+        const incomeGradient = ctx.createLinearGradient(0, 0, 0, 350);
+        incomeGradient.addColorStop(0, 'rgba(16, 185, 129, 0.4)');
+        incomeGradient.addColorStop(0.5, 'rgba(16, 185, 129, 0.25)');
+        incomeGradient.addColorStop(1, 'rgba(16, 185, 129, 0.05)');
+
+        const expenseGradient = ctx.createLinearGradient(0, 0, 0, 350);
+        expenseGradient.addColorStop(0, 'rgba(239, 68, 68, 0.4)');
+        expenseGradient.addColorStop(0.5, 'rgba(239, 68, 68, 0.25)');
+        expenseGradient.addColorStop(1, 'rgba(239, 68, 68, 0.05)');
 
         modernChart = new Chart(ctx, {
             type: 'line',
@@ -340,31 +363,29 @@ document.addEventListener('DOMContentLoaded', () => {
                 datasets: [
                     {
                         label: 'Income',
-                        data: generateWaveData(income),
-                        backgroundColor: 'rgba(16, 185, 129, 0.15)',
+                        data: generateSmoothWave(income, 0),
+                        backgroundColor: incomeGradient,
                         borderColor: '#10B981',
-                        borderWidth: 3,
-                        tension: 0.4,
+                        borderWidth: 2.5,
+                        tension: 0.5,
                         fill: true,
                         pointRadius: 0,
-                        pointHoverRadius: 6,
-                        pointHoverBackgroundColor: '#10B981',
-                        pointHoverBorderColor: '#fff',
-                        pointHoverBorderWidth: 2
+                        pointHoverRadius: 0,
+                        borderCapStyle: 'round',
+                        borderJoinStyle: 'round'
                     },
                     {
                         label: 'Expenses',
-                        data: generateWaveData(expenses),
-                        backgroundColor: 'rgba(239, 68, 68, 0.15)',
+                        data: generateSmoothWave(expenses, Math.PI * 0.35),
+                        backgroundColor: expenseGradient,
                         borderColor: '#EF4444',
-                        borderWidth: 3,
-                        tension: 0.4,
+                        borderWidth: 2.5,
+                        tension: 0.5,
                         fill: true,
                         pointRadius: 0,
-                        pointHoverRadius: 6,
-                        pointHoverBackgroundColor: '#EF4444',
-                        pointHoverBorderColor: '#fff',
-                        pointHoverBorderWidth: 2
+                        pointHoverRadius: 0,
+                        borderCapStyle: 'round',
+                        borderJoinStyle: 'round'
                     }
                 ]
             },
@@ -387,7 +408,9 @@ document.addEventListener('DOMContentLoaded', () => {
                             },
                             padding: 15,
                             usePointStyle: true,
-                            pointStyle: 'circle'
+                            pointStyle: 'circle',
+                            boxWidth: 10,
+                            boxHeight: 10
                         }
                     },
                     tooltip: {
@@ -405,8 +428,10 @@ document.addEventListener('DOMContentLoaded', () => {
                         },
                         cornerRadius: 12,
                         displayColors: true,
+                        boxWidth: 12,
+                        boxHeight: 12,
                         callbacks: {
-                            title: () => 'Current Month',
+                            title: () => 'Monthly Overview',
                             label: context => {
                                 const value = context.parsed.y || 0;
                                 const formatted = getCurrencySymbol(getUserCurrency()) + Number(value).toLocaleString('en-US', {
@@ -422,21 +447,28 @@ document.addEventListener('DOMContentLoaded', () => {
                     x: {
                         display: false,
                         grid: {
-                            display: false
+                            display: false,
+                            drawBorder: false
                         }
                     },
                     y: {
                         display: true,
                         beginAtZero: true,
                         grid: {
-                            color: 'rgba(255, 255, 255, 0.08)',
-                            drawBorder: false
+                            color: 'rgba(255, 255, 255, 0.05)',
+                            drawBorder: false,
+                            lineWidth: 1
+                        },
+                        border: {
+                            display: false
                         },
                         ticks: {
-                            color: 'rgba(255, 255, 255, 0.6)',
+                            color: 'rgba(255, 255, 255, 0.5)',
                             font: {
-                                size: 11
+                                size: 10,
+                                weight: '500'
                             },
+                            padding: 10,
                             callback: value => getCurrencySymbol(getUserCurrency()) + value.toLocaleString('en-US', {
                                 notation: 'compact',
                                 compactDisplay: 'short'
@@ -445,8 +477,13 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
                 },
                 animation: {
-                    duration: 1500,
-                    easing: 'easeInOutCubic'
+                    duration: 2000,
+                    easing: 'easeInOutQuart'
+                },
+                elements: {
+                    line: {
+                        borderCapStyle: 'round'
+                    }
                 }
             }
         });

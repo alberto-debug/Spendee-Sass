@@ -610,7 +610,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function renderSuggestionsInChat(suggestions) {
         if (!aiMessages || !suggestions || suggestions.length === 0) return;
 
-        suggestions.forEach(suggestion => {
+        suggestions.forEach((suggestion, index) => {
             const msgDiv = document.createElement('div');
             msgDiv.className = 'ai-msg';
 
@@ -621,13 +621,39 @@ document.addEventListener('DOMContentLoaded', () => {
                 'GENERAL': 'lightbulb'
             };
 
+            const colorMap = {
+                'SAVINGS': '#10B981',
+                'BUDGET': '#F59E0B',
+                'SPENDING': '#EF4444',
+                'GENERAL': '#6366F1'
+            };
+
+            const labelMap = {
+                'SAVINGS': 'Savings Tip',
+                'BUDGET': 'Budget Alert',
+                'SPENDING': 'Spending Insight',
+                'GENERAL': 'General Advice'
+            };
+
             const icon = iconMap[suggestion.type] || 'lightbulb';
+            const color = colorMap[suggestion.type] || '#6366F1';
+            const label = labelMap[suggestion.type] || 'Suggestion';
 
             msgDiv.innerHTML = `
-                <div class="ai-avatar"><i class="fas fa-${icon}"></i></div>
+                <div class="ai-avatar" style="background: linear-gradient(135deg, ${color} 0%, ${color}dd 100%);">
+                    <i class="fas fa-${icon}"></i>
+                </div>
                 <div class="ai-bubble">
-                    <p>${escapeHtml(suggestion.message)}</p>
-                    <div class="ai-meta">Assistant • ${formatDate(suggestion.createdAt)}</div>
+                    <div class="ai-suggestion-header">
+                        <span class="ai-suggestion-label" style="background: ${color}33; color: ${color};">
+                            <i class="fas fa-${icon} me-1"></i>${label}
+                        </span>
+                        <span class="ai-suggestion-number">#${index + 1}</span>
+                    </div>
+                    <p class="ai-suggestion-text">${escapeHtml(suggestion.message)}</p>
+                    <div class="ai-meta">
+                        <i class="fas fa-clock me-1"></i>${formatDate(suggestion.createdAt)}
+                    </div>
                 </div>
             `;
 

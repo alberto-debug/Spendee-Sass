@@ -959,13 +959,7 @@ document.addEventListener('DOMContentLoaded', () => {
                                         <span class="input-group-text bg-dark text-white border-secondary">${getCurrencySymbol(getUserCurrency())}</span>
                                         <input type="number" class="form-control bg-dark text-white border-secondary" id="goalTargetInput" placeholder="5000.00" step="0.01" required>
                                     </div>
-                                </div>
-                                <div class="mb-3">
-                                    <label for="goalCurrentInput" class="form-label">Current Amount</label>
-                                    <div class="input-group">
-                                        <span class="input-group-text bg-dark text-white border-secondary">${getCurrencySymbol(getUserCurrency())}</span>
-                                        <input type="number" class="form-control bg-dark text-white border-secondary" id="goalCurrentInput" placeholder="0.00" step="0.01" value="0">
-                                    </div>
+                                    <small class="text-muted">Your goal will start at $0. Use "Add Funds" to track your progress.</small>
                                 </div>
                                 <div class="mb-3">
                                     <label for="goalDeadlineInput" class="form-label">Target Date (Optional)</label>
@@ -1042,7 +1036,6 @@ document.addEventListener('DOMContentLoaded', () => {
     function saveNewGoal() {
         const name = document.getElementById('goalNameInput').value.trim();
         const targetAmount = parseFloat(document.getElementById('goalTargetInput').value) || 0;
-        const currentAmount = parseFloat(document.getElementById('goalCurrentInput').value) || 0;
         const deadline = document.getElementById('goalDeadlineInput').value || null;
         const icon = document.getElementById('goalIconInput').value;
 
@@ -1054,7 +1047,6 @@ document.addEventListener('DOMContentLoaded', () => {
         const goalData = {
             name,
             targetAmount,
-            currentAmount,
             deadline,
             icon
         };

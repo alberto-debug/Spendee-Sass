@@ -20,24 +20,25 @@ public class MpesaStatementParserService {
 
     // Date formats commonly used in M-Pesa statements
     private static final DateTimeFormatter[] DATE_FORMATTERS = {
-        DateTimeFormatter.ofPattern("dd/MM/yyyy"),
-        DateTimeFormatter.ofPattern("dd-MM-yyyy"),
-        DateTimeFormatter.ofPattern("dd.MM.yyyy"),
-        DateTimeFormatter.ofPattern("yyyy-MM-dd"),
-        DateTimeFormatter.ofPattern("d/M/yyyy"),
-        DateTimeFormatter.ofPattern("dd MMM yyyy")
+            DateTimeFormatter.ofPattern("dd/MM/yyyy"),
+            DateTimeFormatter.ofPattern("dd-MM-yyyy"),
+            DateTimeFormatter.ofPattern("dd.MM.yyyy"),
+            DateTimeFormatter.ofPattern("yyyy-MM-dd"),
+            DateTimeFormatter.ofPattern("d/M/yyyy"),
+            DateTimeFormatter.ofPattern("dd MMM yyyy")
     };
 
     // Keywords that indicate income transactions
     private static final String[] INCOME_KEYWORDS = {
-        "received", "deposit", "credited", "customer paid", "reversal",
-        "refund", "airtime purchase", "received from"
+            "received", "deposit", "credited", "customer paid", "reversal",
+            "refund", "received from", "funds received"
     };
 
     // Keywords that indicate expense transactions
     private static final String[] EXPENSE_KEYWORDS = {
-        "paid", "sent", "debited", "withdraw", "bought", "purchase",
-        "bill payment", "paybill", "till number", "buy goods"
+            "paid", "sent", "debited", "withdraw", "withdrawn", "bought", "purchase",
+            "bill payment", "paybill", "till number", "buy goods", "airtime purchase",
+            "charge", "fee"
     };
 
     /**
@@ -48,6 +49,9 @@ public class MpesaStatementParserService {
 
         try (PDDocument document = PDDocument.load(file.getInputStream())) {
             PDFTextStripper stripper = new PDFTextStripper();
+            // Important: keep table columns in order
+            stripper.setSortByPosition(true);
+
             String text = stripper.getText(document);
 
             log.info("Parsing M-Pesa statement with {} pages", document.getNumberOfPages());
@@ -69,13 +73,16 @@ public class MpesaStatementParserService {
     private List<MpesaTransactionDTO> extractTransactions(String text) {
         List<MpesaTransactionDTO> transactions = new ArrayList<>();
 
-        // Split text into lines
         String[] lines = text.split("\n");
 
         boolean inSummarySection = false;
+        boolean inDetailedSection = false;
+        int summaryCount = 0;
+        int detailedCount = 0;
+
         LocalDate statementDate = LocalDate.now(); // Default to today
 
-        // First, try to extract the statement date
+        // Try to extract the statement date first
         for (String line : lines) {
             if (line.contains("Date of Statement:")) {
                 statementDate = extractStatementDate(line);
@@ -86,50 +93,60 @@ public class MpesaStatementParserService {
 
         for (int i = 0; i < lines.length; i++) {
             String line = lines[i].trim();
+            if (line.isEmpty()) continue;
 
-            // Skip empty lines
-            if (line.isEmpty()) {
-                continue;
-            }
-
-            // Detect when we reach the SUMMARY section
+            // Section switches
             if (line.contains("SUMMARY")) {
                 inSummarySection = true;
+                inDetailedSection = false;
                 log.info("Found SUMMARY section");
                 continue;
             }
-
-            // Stop processing when we reach DETAILED STATEMENT
             if (line.contains("DETAILED STATEMENT")) {
-                log.info("Reached DETAILED STATEMENT, stopping summary parsing");
-                break;
+                inSummarySection = false;
+                inDetailedSection = true;
+                log.info("Found DETAILED STATEMENT section");
+                continue;
             }
 
-            // Skip header lines
+            // Skip header or banner lines
             if (isHeaderLine(line) || line.contains("TRANSACTION TYPE")) {
                 continue;
             }
 
-            // Only process lines in the summary section
-            if (!inSummarySection) {
-                continue;
-            }
-
             try {
-                List<MpesaTransactionDTO> lineTransactions = parseSummaryLineMultiple(line, statementDate);
-                if (lineTransactions != null && !lineTransactions.isEmpty()) {
-                    transactions.addAll(lineTransactions);
-                    for (MpesaTransactionDTO tx : lineTransactions) {
-                        log.debug("Parsed summary transaction: {} - {} - {}",
-                            tx.getDescription(), tx.getType(), tx.getAmount());
+                if (inSummarySection) {
+                    List<MpesaTransactionDTO> lineTx = parseSummaryLineMultiple(line, statementDate);
+                    if (lineTx != null && !lineTx.isEmpty()) {
+                        transactions.addAll(lineTx);
+                        summaryCount += lineTx.size();
+                        if (log.isDebugEnabled()) {
+                            for (MpesaTransactionDTO tx : lineTx) {
+                                log.debug("Parsed summary transaction: {} - {} - {}",
+                                        tx.getDescription(), tx.getType(), tx.getAmount());
+                            }
+                        }
+                    }
+                } else if (inDetailedSection) {
+                    // Prefer strict detailed parser first
+                    MpesaTransactionDTO tx = parseDetailedStatementLine(line);
+                    if (tx == null) {
+                        // Fallbacks: tabular/space-separated or multi-line
+                        tx = parseTransactionLine(line, lines, i);
+                    }
+                    if (tx != null) {
+                        transactions.add(tx);
+                        detailedCount++;
+                        log.debug("Parsed detailed transaction: {} - {} - {}", tx.getDescription(), tx.getType(), tx.getAmount());
                     }
                 }
             } catch (Exception e) {
-                log.debug("Could not parse summary line: {} - Error: {}", line, e.getMessage());
+                log.debug("Could not parse line: {} - Error: {}", line, e.getMessage());
             }
         }
 
-        log.info("Total transactions parsed from summary: {}", transactions.size());
+        log.info("Total transactions parsed from summary: {}", summaryCount);
+        log.info("Total transactions parsed from detailed: {}", detailedCount);
         return transactions;
     }
 
@@ -204,9 +221,9 @@ public class MpesaStatementParserService {
 
         // Skip if transaction type is empty or looks like a header
         if (transactionType.isEmpty() ||
-            transactionType.equalsIgnoreCase("TRANSACTION TYPE") ||
-            transactionType.toLowerCase().contains("paid in") ||
-            transactionType.toLowerCase().contains("paid out")) {
+                transactionType.equalsIgnoreCase("TRANSACTION TYPE") ||
+                transactionType.toLowerCase().contains("paid in") ||
+                transactionType.toLowerCase().contains("paid out")) {
             log.debug("Skipping header or empty transaction type: '{}'", transactionType);
             return transactions;
         }
@@ -222,12 +239,12 @@ public class MpesaStatementParserService {
             if (paidIn != null && paidIn.compareTo(BigDecimal.ZERO) > 0) {
                 log.info("Creating INCOME transaction: {} - Amount: {}", transactionType, paidIn);
                 transactions.add(new MpesaTransactionDTO(
-                    date,
-                    transactionType + " (Received)",
-                    paidIn,
-                    "INCOME",
-                    "",
-                    line
+                        date,
+                        transactionType + " (Received)",
+                        paidIn,
+                        "INCOME",
+                        "",
+                        line
                 ));
             }
         }
@@ -241,12 +258,12 @@ public class MpesaStatementParserService {
             if (paidOut != null && paidOut.compareTo(BigDecimal.ZERO) > 0) {
                 log.info("Creating EXPENSE transaction: {} - Amount: {}", transactionType, paidOut);
                 transactions.add(new MpesaTransactionDTO(
-                    date,
-                    transactionType + " (Sent)",
-                    paidOut,
-                    "EXPENSE",
-                    "",
-                    line
+                        date,
+                        transactionType + " (Sent)",
+                        paidOut,
+                        "EXPENSE",
+                        "",
+                        line
                 ));
             }
         }
@@ -304,17 +321,14 @@ public class MpesaStatementParserService {
 
         // Skip if transaction type is empty or looks like a header
         if (transactionType.isEmpty() ||
-            transactionType.equalsIgnoreCase("TRANSACTION TYPE") ||
-            transactionType.toLowerCase().contains("paid in") ||
-            transactionType.toLowerCase().contains("paid out")) {
+                transactionType.equalsIgnoreCase("TRANSACTION TYPE") ||
+                transactionType.toLowerCase().contains("paid in") ||
+                transactionType.toLowerCase().contains("paid out")) {
             log.debug("Skipping header or empty transaction type: '{}'", transactionType);
             return null;
         }
 
         log.debug("Transaction type: '{}', Parts count: {}", transactionType, parts.length);
-
-        // Try to create both income and expense transactions from this line
-        List<MpesaTransactionDTO> transactionsFromLine = new ArrayList<>();
 
         // Parse Paid In amount (income)
         if (parts.length > 1) {
@@ -324,14 +338,13 @@ public class MpesaStatementParserService {
 
             if (paidIn != null && paidIn.compareTo(BigDecimal.ZERO) > 0) {
                 log.info("Creating INCOME transaction: {} - Amount: {}", transactionType, paidIn);
-                // Return the income transaction
                 return new MpesaTransactionDTO(
-                    date,
-                    transactionType + " (Received)",
-                    paidIn,
-                    "INCOME",
-                    "",
-                    line
+                        date,
+                        transactionType + " (Received)",
+                        paidIn,
+                        "INCOME",
+                        "",
+                        line
                 );
             }
         }
@@ -344,14 +357,13 @@ public class MpesaStatementParserService {
 
             if (paidOut != null && paidOut.compareTo(BigDecimal.ZERO) > 0) {
                 log.info("Creating EXPENSE transaction: {} - Amount: {}", transactionType, paidOut);
-                // Return the expense transaction
                 return new MpesaTransactionDTO(
-                    date,
-                    transactionType + " (Sent)",
-                    paidOut,
-                    "EXPENSE",
-                    "",
-                    line
+                        date,
+                        transactionType + " (Sent)",
+                        paidOut,
+                        "EXPENSE",
+                        "",
+                        line
                 );
             }
         }
@@ -365,14 +377,11 @@ public class MpesaStatementParserService {
      * Format: Receipt | Completion Time | Details | Transaction Status | Paid In | Withdraw | Balance
      */
     private MpesaTransactionDTO parseDetailedStatementLine(String line) {
-        // Split by pipe or multiple spaces (3 or more)
+        // Split by pipe or multiple spaces (2 or more)
         String[] parts = line.split("\\|");
-
-        // If no pipes found, try splitting by multiple spaces
         if (parts.length < 5) {
-            parts = line.split("\\s{3,}");
+            parts = line.split("\\s{2,}");
         }
-
         if (parts.length < 5) {
             return null;
         }
@@ -507,7 +516,7 @@ public class MpesaStatementParserService {
      */
     private MpesaTransactionDTO parseTabularFormat(String line) {
         // Split by tab, pipe, or multiple spaces
-        String[] parts = line.split("\\t+|\\|+|\\s{3,}");
+        String[] parts = line.split("\\t+|\\|+|\\s{2,}");
 
         if (parts.length < 3) {
             return null;
@@ -531,10 +540,10 @@ public class MpesaStatementParserService {
 
                 // Determine type based on column position or keywords
                 if (i == 2 || parts[i].toLowerCase().contains("paid in") ||
-                    parts[i].toLowerCase().contains("received")) {
+                        parts[i].toLowerCase().contains("received")) {
                     type = "INCOME";
                 } else if (i == 3 || parts[i].toLowerCase().contains("withdrawn") ||
-                           parts[i].toLowerCase().contains("paid out")) {
+                        parts[i].toLowerCase().contains("paid out")) {
                     type = "EXPENSE";
                 }
 
@@ -691,20 +700,19 @@ public class MpesaStatementParserService {
     private boolean isHeaderLine(String line) {
         String lower = line.toLowerCase();
         return lower.contains("receipt") ||
-               lower.contains("completion time") ||
-               lower.contains("transaction status") ||
-               lower.contains("paid in") ||
-               lower.contains("withdraw") ||
-               lower.contains("balance") ||
-               lower.contains("mpesa") ||
-               lower.contains("customer name") ||
-               lower.contains("mobile number") ||
-               lower.contains("statement period") ||
-               lower.contains("summary") ||
-               lower.contains("transaction type") ||
-               lower.contains("paid out") ||
-               lower.contains("total") ||
-               lower.matches("^[\\s|]+$"); // Lines with only pipes and spaces
+                lower.contains("completion time") ||
+                lower.contains("transaction status") ||
+                lower.contains("paid in") ||
+                lower.contains("withdraw") ||
+                lower.contains("balance") ||
+                lower.contains("mpesa") ||
+                lower.contains("customer name") ||
+                lower.contains("mobile number") ||
+                lower.contains("statement period") ||
+                lower.contains("summary") ||
+                lower.contains("transaction type") ||
+                lower.contains("paid out") ||
+                lower.contains("total") ||
+                lower.matches("^[\\s|]+$"); // Lines with only pipes and spaces
     }
 }
-

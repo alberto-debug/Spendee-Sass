@@ -121,6 +121,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 initializeChart(summary);
                 // initialize the modern/donut chart on the right
                 initializeModernChart(summary);
+                // update change indicators with real data
+                updatePercentageChanges(summary);
             })
             .catch(error => {
                 console.error('Error fetching dashboard summary:', error);
@@ -501,10 +503,12 @@ document.addEventListener('DOMContentLoaded', () => {
             balanceElement.textContent = currencySymbol + formatCurrency(summary.totalBalance);
         }
         if (incomeElement) {
-            incomeElement.textContent = currencySymbol + formatCurrency(summary.monthlyIncome);
+            // Use total income for the card to reflect real cumulative income
+            incomeElement.textContent = currencySymbol + formatCurrency(summary.totalIncome ?? summary.monthlyIncome);
         }
         if (expenseElement) {
-            expenseElement.textContent = currencySymbol + formatCurrency(summary.monthlyExpenses);
+            // Use total expenses for the card to reflect real cumulative expenses
+            expenseElement.textContent = currencySymbol + formatCurrency(summary.totalExpenses ?? summary.monthlyExpenses);
         }
         if (savingsElement) {
             savingsElement.textContent = currencySymbol + formatCurrency(summary.totalSavings);

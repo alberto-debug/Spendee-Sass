@@ -878,7 +878,7 @@
                     <div class="stat-amount" id="totalExpense">$0.00</div>
                     <div class="stat-trend trend-down">
                         <i class="fas fa-arrow-down"></i>
-                        <span>8.3% vs last month</span>
+                        <span id="expenseChange">8.3% vs last month</span>
                     </div>
                 </div>
             </div>
@@ -1024,6 +1024,7 @@
     </section>
 
     <th:block th:fragment="scripts">
+        <script src="/js/auth-interceptor.js"></script>
         <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
         <script src="/js/dashboard.js"></script>
     </th:block>

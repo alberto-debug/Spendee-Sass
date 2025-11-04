@@ -15,11 +15,23 @@ import java.time.format.DateTimeFormatter;
 @RequiredArgsConstructor
 public class PDFReportService {
 
-    private static final Font TITLE_FONT = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 24, BaseColor.DARK_GRAY);
-    private static final Font HEADING_FONT = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 16, BaseColor.DARK_GRAY);
-    private static final Font SUBHEADING_FONT = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 12, BaseColor.DARK_GRAY);
+    // Professional palette and typography
+    private static final BaseColor TEXT_DARK = new BaseColor(45, 55, 72);          // slate-800
+    private static final BaseColor TEXT_MUTED = new BaseColor(100, 116, 139);      // slate-500
+    private static final BaseColor ACCENT_GREEN = new BaseColor(16, 185, 129);     // emerald-500
+    private static final BaseColor ACCENT_RED = new BaseColor(220, 38, 38);        // red-600
+    private static final BaseColor TABLE_HEADER_BG = new BaseColor(248, 250, 252); // slate-50
+    private static final BaseColor CARD_BG = new BaseColor(247, 249, 252);         // subtle card bg
+    private static final BaseColor BORDER_LIGHT = new BaseColor(226, 232, 240);    // slate-200
+
+    // Fonts (more conservative for a statement look)
+    private static final Font COMPANY_FONT = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 18, TEXT_DARK);
+    private static final Font TITLE_FONT = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 20, TEXT_DARK);
+    private static final Font HEADING_FONT = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 14, TEXT_DARK);
+    private static final Font SUBHEADING_FONT = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 11, TEXT_DARK);
     private static final Font NORMAL_FONT = FontFactory.getFont(FontFactory.HELVETICA, 10, BaseColor.BLACK);
-    private static final Font SMALL_FONT = FontFactory.getFont(FontFactory.HELVETICA, 8, BaseColor.GRAY);
+    private static final Font SMALL_FONT = FontFactory.getFont(FontFactory.HELVETICA, 8, TEXT_MUTED);
+    private static final Font WHITE_ICON_FONT = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 12, BaseColor.WHITE);
 
     public byte[] generatePDFReport(ReportDataDTO reportData, User user) throws Exception {
         Document document = new Document(PageSize.A4, 40, 40, 60, 60);
@@ -33,7 +45,7 @@ public class PDFReportService {
         document.open();
 
         // Add company logo/title section
-        addHeader(document, user);
+        addHeader(document, user, writer);
 
         // Add report title and date range
         addReportTitle(document, reportData);
@@ -59,49 +71,79 @@ public class PDFReportService {
         return baos.toByteArray();
     }
 
-    private void addHeader(Document document, User user) throws DocumentException {
+    // Header now includes a compact money icon and smaller company name
+    private void addHeader(Document document, User user, PdfWriter writer) throws DocumentException {
         PdfPTable headerTable = new PdfPTable(2);
         headerTable.setWidthPercentage(100);
-        headerTable.setSpacingAfter(20);
+        headerTable.setSpacingAfter(12);
+        headerTable.setWidths(new float[]{3f, 2f});
 
-        // Company name/logo
-        PdfPCell logoCell = new PdfPCell();
-        logoCell.setBorder(Rectangle.NO_BORDER);
-        Paragraph companyName = new Paragraph("Spendee Financial", TITLE_FONT);
-        companyName.setAlignment(Element.ALIGN_LEFT);
-        logoCell.addElement(companyName);
+        // Left side: icon + company
+        PdfPCell left = new PdfPCell();
+        left.setBorder(Rectangle.NO_BORDER);
+
+        // Build a small inline table with icon and company texts
+        PdfPTable brand = new PdfPTable(2);
+        brand.setWidthPercentage(100);
+        brand.setWidths(new float[]{0.4f, 4.6f});
+
+        // Money icon - simple green circle with $
+        PdfPCell iconCell = new PdfPCell(new Phrase("$", WHITE_ICON_FONT));
+        iconCell.setFixedHeight(20f);
+        iconCell.setHorizontalAlignment(Element.ALIGN_CENTER);
+        iconCell.setVerticalAlignment(Element.ALIGN_MIDDLE);
+        iconCell.setBackgroundColor(ACCENT_GREEN);
+        iconCell.setBorder(Rectangle.NO_BORDER);
+        iconCell.setPadding(0);
+        iconCell.setUseAscender(true);
+        iconCell.setUseDescender(true);
+
+        PdfPCell companyCell = new PdfPCell();
+        companyCell.setBorder(Rectangle.NO_BORDER);
+        Paragraph companyName = new Paragraph("Spendee Financial", COMPANY_FONT);
         Paragraph tagline = new Paragraph("Financial Management System", SMALL_FONT);
-        logoCell.addElement(tagline);
+        companyName.setSpacingAfter(0);
+        companyCell.addElement(companyName);
+        companyCell.addElement(tagline);
 
-        // User info
-        PdfPCell userCell = new PdfPCell();
-        userCell.setBorder(Rectangle.NO_BORDER);
-        userCell.setHorizontalAlignment(Element.ALIGN_RIGHT);
+        brand.addCell(iconCell);
+        brand.addCell(companyCell);
+        left.addElement(brand);
+
+        // Right side: user info aligned right
+        PdfPCell right = new PdfPCell();
+        right.setBorder(Rectangle.NO_BORDER);
+        right.setHorizontalAlignment(Element.ALIGN_RIGHT);
         Paragraph userName = new Paragraph(user.getFirstName() + " " + user.getLastName(), SUBHEADING_FONT);
         userName.setAlignment(Element.ALIGN_RIGHT);
-        userCell.addElement(userName);
         Paragraph userEmail = new Paragraph(user.getEmail(), SMALL_FONT);
         userEmail.setAlignment(Element.ALIGN_RIGHT);
-        userCell.addElement(userEmail);
+        right.addElement(userName);
+        right.addElement(userEmail);
 
-        headerTable.addCell(logoCell);
-        headerTable.addCell(userCell);
-
+        headerTable.addCell(left);
+        headerTable.addCell(right);
         document.add(headerTable);
 
-        // Add horizontal line using Chunk with underline
-        Chunk linebreak = new Chunk(new String(new char[100]).replace('\0', '_'));
-        linebreak.setFont(FontFactory.getFont(FontFactory.HELVETICA, 1, new BaseColor(99, 102, 241)));
-        document.add(linebreak);
+        // Thin professional divider line
+        PdfContentByte cb = writer.getDirectContent();
+        cb.saveState();
+        cb.setLineWidth(0.5f);
+        cb.setColorStroke(BORDER_LIGHT);
+        cb.moveTo(document.left(), document.top() - 5);
+        cb.lineTo(document.right(), document.top() - 5);
+        cb.stroke();
+        cb.restoreState();
+
         document.add(Chunk.NEWLINE);
     }
 
     private void addReportTitle(Document document, ReportDataDTO reportData) throws DocumentException {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MMM dd, yyyy");
 
-        Paragraph title = new Paragraph("Financial Report", HEADING_FONT);
+        Paragraph title = new Paragraph("Financial Report", TITLE_FONT);
         title.setAlignment(Element.ALIGN_CENTER);
-        title.setSpacingAfter(10);
+        title.setSpacingAfter(6);
         document.add(title);
 
         Paragraph dateRange = new Paragraph(
@@ -109,46 +151,44 @@ public class PDFReportService {
             NORMAL_FONT
         );
         dateRange.setAlignment(Element.ALIGN_CENTER);
-        dateRange.setSpacingAfter(20);
+        dateRange.setSpacingAfter(16);
         document.add(dateRange);
     }
 
     private void addExecutiveSummary(Document document, ReportDataDTO reportData) throws DocumentException {
         Paragraph heading = new Paragraph("Executive Summary", HEADING_FONT);
-        heading.setSpacingBefore(10);
-        heading.setSpacingAfter(15);
+        heading.setSpacingBefore(6);
+        heading.setSpacingAfter(10);
         document.add(heading);
 
         PdfPTable summaryTable = new PdfPTable(3);
         summaryTable.setWidthPercentage(100);
-        summaryTable.setSpacingAfter(20);
+        summaryTable.setSpacingAfter(14);
 
-        // Header cells with background color
-        BaseColor headerColor = new BaseColor(99, 102, 241);
-
-        addSummaryCard(summaryTable, "Total Income", reportData.getTotalIncome(), new BaseColor(16, 185, 129));
-        addSummaryCard(summaryTable, "Total Expenses", reportData.getTotalExpense(), new BaseColor(239, 68, 68));
+        addSummaryCard(summaryTable, "Total Income", reportData.getTotalIncome(), ACCENT_GREEN);
+        addSummaryCard(summaryTable, "Total Expenses", reportData.getTotalExpense(), ACCENT_RED);
         addSummaryCard(summaryTable, "Net Savings", reportData.getNetSavings(),
-            reportData.getNetSavings().compareTo(BigDecimal.ZERO) >= 0 ?
-            new BaseColor(16, 185, 129) : new BaseColor(239, 68, 68));
+            reportData.getNetSavings().compareTo(BigDecimal.ZERO) >= 0 ? ACCENT_GREEN : ACCENT_RED);
 
         document.add(summaryTable);
     }
 
     private void addSummaryCard(PdfPTable table, String label, BigDecimal amount, BaseColor color) {
         PdfPCell cell = new PdfPCell();
-        cell.setPadding(15);
-        cell.setBackgroundColor(new BaseColor(245, 247, 250));
-        cell.setBorder(Rectangle.NO_BORDER);
+        cell.setPadding(12);
+        cell.setBackgroundColor(CARD_BG);
+        cell.setBorder(Rectangle.BOX);
+        cell.setBorderColor(BORDER_LIGHT);
+        cell.setBorderWidth(1f);
 
         Paragraph labelPara = new Paragraph(label, SMALL_FONT);
         labelPara.setAlignment(Element.ALIGN_CENTER);
         cell.addElement(labelPara);
 
-        Font amountFont = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 18, color);
+        Font amountFont = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 16, color);
         Paragraph amountPara = new Paragraph("$" + String.format("%,.2f", amount), amountFont);
         amountPara.setAlignment(Element.ALIGN_CENTER);
-        amountPara.setSpacingBefore(5);
+        amountPara.setSpacingBefore(4);
         cell.addElement(amountPara);
 
         table.addCell(cell);
@@ -160,13 +200,13 @@ public class PDFReportService {
         }
 
         Paragraph heading = new Paragraph("Financial Overview", HEADING_FONT);
-        heading.setSpacingBefore(10);
-        heading.setSpacingAfter(15);
+        heading.setSpacingBefore(6);
+        heading.setSpacingAfter(10);
         document.add(heading);
 
         PdfPTable table = new PdfPTable(3);
         table.setWidthPercentage(100);
-        table.setSpacingAfter(20);
+        table.setSpacingAfter(16);
 
         // Headers
         addTableHeader(table, "Period");
@@ -185,13 +225,13 @@ public class PDFReportService {
 
     private void addCategoryBreakdown(Document document, ReportDataDTO reportData) throws DocumentException {
         Paragraph heading = new Paragraph("Category Breakdown", HEADING_FONT);
-        heading.setSpacingBefore(10);
-        heading.setSpacingAfter(15);
+        heading.setSpacingBefore(6);
+        heading.setSpacingAfter(10);
         document.add(heading);
 
         PdfPTable table = new PdfPTable(2);
         table.setWidthPercentage(100);
-        table.setSpacingAfter(20);
+        table.setSpacingAfter(16);
         table.setWidths(new int[]{3, 1});
 
         addTableHeader(table, "Category");
@@ -209,14 +249,14 @@ public class PDFReportService {
 
     private void addTransactionsTable(Document document, ReportDataDTO reportData) throws DocumentException {
         Paragraph heading = new Paragraph("Transaction Details", HEADING_FONT);
-        heading.setSpacingBefore(10);
-        heading.setSpacingAfter(15);
+        heading.setSpacingBefore(6);
+        heading.setSpacingAfter(10);
         document.add(heading);
 
         PdfPTable table = new PdfPTable(5);
         table.setWidthPercentage(100);
         table.setWidths(new int[]{2, 3, 2, 2, 2});
-        table.setSpacingAfter(20);
+        table.setSpacingAfter(16);
 
         addTableHeader(table, "Date");
         addTableHeader(table, "Description");
@@ -241,11 +281,13 @@ public class PDFReportService {
     }
 
     private void addTableHeader(PdfPTable table, String text) {
-        PdfPCell cell = new PdfPCell(new Phrase(text, SUBHEADING_FONT));
-        cell.setBackgroundColor(new BaseColor(99, 102, 241));
+        Phrase phrase = new Phrase(text, SUBHEADING_FONT);
+        PdfPCell cell = new PdfPCell(phrase);
+        cell.setBackgroundColor(TABLE_HEADER_BG);
         cell.setHorizontalAlignment(Element.ALIGN_CENTER);
-        cell.setPadding(10);
-        cell.setBorderColor(BaseColor.WHITE);
+        cell.setPadding(8);
+        cell.setBorderColor(BORDER_LIGHT);
+        cell.setBorderWidth(1f);
         table.addCell(cell);
     }
 
@@ -253,7 +295,7 @@ public class PDFReportService {
         PdfPCell cell = new PdfPCell(new Phrase(text, NORMAL_FONT));
         cell.setHorizontalAlignment(alignment);
         cell.setPadding(8);
-        cell.setBorderColor(new BaseColor(220, 220, 220));
+        cell.setBorderColor(BORDER_LIGHT);
         table.addCell(cell);
     }
 
@@ -264,7 +306,7 @@ public class PDFReportService {
             SMALL_FONT
         );
         footer.setAlignment(Element.ALIGN_CENTER);
-        footer.setSpacingBefore(30);
+        footer.setSpacingBefore(24);
         document.add(footer);
     }
 

@@ -45,6 +45,27 @@ document.addEventListener('DOMContentLoaded', () => {
         return symbols[currencyCode] || '$';
     }
 
+    // Convert a hex color (#RRGGBB) to rgba(r,g,b,a)
+    function hexToRgba(hex, alpha = 1) {
+        if (!hex) return `rgba(0,0,0,${alpha})`;
+        const sanitized = hex.replace('#', '');
+        const bigint = parseInt(sanitized, 16);
+        if (Number.isNaN(bigint) || (sanitized.length !== 6 && sanitized.length !== 3)) {
+            return `rgba(0,0,0,${alpha})`;
+        }
+        let r, g, b;
+        if (sanitized.length === 3) {
+            r = parseInt(sanitized.charAt(0) + sanitized.charAt(0), 16);
+            g = parseInt(sanitized.charAt(1) + sanitized.charAt(1), 16);
+            b = parseInt(sanitized.charAt(2) + sanitized.charAt(2), 16);
+        } else {
+            r = (bigint >> 16) & 255;
+            g = (bigint >> 8) & 255;
+            b = bigint & 255;
+        }
+        return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+    }
+
     // Initialize page
     init();
 
@@ -649,7 +670,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 </div>
                 <div class="ai-bubble">
                     <div class="ai-suggestion-header">
-                        <span class="ai-suggestion-label" style="background: ${color}33; color: ${color};">
+                        <span class="ai-suggestion-label" style="background: ${hexToRgba(color, 0.2)}; color: ${color};">
                             <i class="fas fa-${icon} me-1"></i>${label}
                         </span>
                         <span class="ai-suggestion-number">#${index + 1}</span>

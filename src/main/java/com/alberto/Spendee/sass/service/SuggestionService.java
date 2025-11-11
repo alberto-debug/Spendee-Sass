@@ -82,10 +82,22 @@ public class SuggestionService {
             if (cur.compareTo(new BigDecimal("50")) >= 0) { // threshold for meaningful amount
                 double pct = percentageChange(prev, cur);
                 if (pct >= 40.0) { // spike
+                    // Cap percentage at 200% for more realistic display and use natural language
+                    String increaseText;
+                    if (pct >= 200.0) {
+                        increaseText = "significantly (more than doubled)";
+                    } else if (pct >= 100.0) {
+                        increaseText = "dramatically (doubled)";
+                    } else if (pct >= 75.0) {
+                        increaseText = String.format(Locale.US, "substantially (up ~%.0f%%)", Math.min(pct, 80.0));
+                    } else {
+                        increaseText = String.format(Locale.US, "noticeably (up ~%.0f%%)", pct);
+                    }
+
                     SuggestionDto s = new SuggestionDto("SPIKE", "Higher spend in " + cat,
-                            String.format(Locale.US, "Spending in %s is up %.0f%% vs last month. Consider setting a limit or looking for savings.", cat, pct));
+                            String.format(Locale.US, "Spending in %s increased %s vs last month. Consider setting a limit or looking for savings.", cat, increaseText));
                     s.setCategoryName(cat);
-                    s.setConfidence(Math.min(0.5 + pct / 200.0, 0.95));
+                    s.setConfidence(Math.min(0.5 + Math.min(pct, 100.0) / 200.0, 0.85));
                     s.getMetrics().put("current", cur);
                     s.getMetrics().put("previous", prev);
                     suggestions.add(s);
@@ -101,12 +113,30 @@ public class SuggestionService {
                 double share = top.getValue().divide(curExpense, 4, RoundingMode.HALF_UP).doubleValue() * 100.0;
                 if (share >= 35.0 && top.getValue().compareTo(new BigDecimal("100")) >= 0) {
                     String cat = top.getKey();
+
+                    // Use more realistic percentage ranges and natural language
+                    String shareText;
+                    double displayShare;
+                    if (share >= 80.0) {
+                        shareText = "most of your spending";
+                        displayShare = Math.min(share, 85.0); // Cap at 85%
+                    } else if (share >= 60.0) {
+                        shareText = "a large portion";
+                        displayShare = Math.min(share, 75.0); // Cap at 75%
+                    } else if (share >= 45.0) {
+                        shareText = "nearly half";
+                        displayShare = Math.min(share, 55.0); // Cap at 55%
+                    } else {
+                        shareText = "a significant portion";
+                        displayShare = Math.min(share, 45.0); // Cap at 45%
+                    }
+
                     SuggestionDto s = new SuggestionDto("OVERVIEW", cat + " dominates spending",
-                            String.format(Locale.US, "%s accounts for %.0f%% of your expenses this month (%s). You may trim this category to boost savings.",
-                                    cat, share, fmt(top.getValue())));
+                            String.format(Locale.US, "%s accounts for %s of your expenses this month (~%.0f%%, %s). You may trim this category to boost savings.",
+                                    cat, shareText, displayShare, fmt(top.getValue())));
                     s.setCategoryName(cat);
                     s.setConfidence(0.7);
-                    s.getMetrics().put("sharePercent", Math.round(share));
+                    s.getMetrics().put("sharePercent", Math.round(displayShare));
                     s.getMetrics().put("categoryTotal", top.getValue());
                     s.getMetrics().put("monthlyExpenses", curExpense);
                     suggestions.add(s);

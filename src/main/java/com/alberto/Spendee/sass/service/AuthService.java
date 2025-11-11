@@ -29,8 +29,7 @@ public class AuthService {
     }
 
     @Transactional
-    public User register(RegistrationDto registrationDto) {
-        // Validate input
+    public User register(RegistrationDto registrationDto) {        // Validate input33Carr20000
         validationService.validateEmail(registrationDto.getEmail());
         validationService.validatePassword(registrationDto.getPassword());
 

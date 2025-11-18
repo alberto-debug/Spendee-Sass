@@ -2,6 +2,7 @@ package com.alberto.Spendee.sass.controller;
 
 import com.alberto.Spendee.sass.dto.DashboardSummaryDto;
 import com.alberto.Spendee.sass.dto.TransactionDto;
+import com.alberto.Spendee.sass.service.SpendingLimitService;
 import com.alberto.Spendee.sass.service.TransactionService;
 import com.alberto.Spendee.sass.domain.transaction.Transaction;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,10 +20,17 @@ public class DashboardController {
     @Autowired
     private TransactionService transactionService;
 
+    @Autowired
+    private SpendingLimitService spendingLimitService;
+
     @GetMapping("/summary")
     public ResponseEntity<DashboardSummaryDto> getDashboardSummary() {
         String userEmail = SecurityContextHolder.getContext().getAuthentication().getName();
         DashboardSummaryDto summary = transactionService.getDashboardSummary(userEmail);
+
+        // Add spending limits to the summary
+        summary.setSpendingLimits(spendingLimitService.getUserSpendingLimits(userEmail));
+
         return ResponseEntity.ok(summary);
     }
     

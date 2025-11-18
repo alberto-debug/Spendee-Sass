@@ -1,5 +1,6 @@
 package com.alberto.Spendee.sass.repository;
 
+import com.alberto.Spendee.sass.domain.transaction.Category;
 import com.alberto.Spendee.sass.domain.transaction.Transaction;
 import com.alberto.Spendee.sass.domain.transaction.TransactionType;
 import com.alberto.Spendee.sass.domain.user.User;
@@ -27,4 +28,8 @@ public interface TransactionRepository extends JpaRepository<Transaction, Long> 
     BigDecimal sumAmountByUserAndTypeAndDateBetween(User user, TransactionType type, LocalDate startDate, LocalDate endDate);
 
     List<Transaction> findByUserAndDateBetweenOrderByDateDesc(User user, LocalDate startDate, LocalDate endDate);
+
+    List<Transaction> findByUserAndCategoryAndDateBetweenAndType(User user, Category category, LocalDate startDate, LocalDate endDate, TransactionType type);
+
+    List<Transaction> findByUserAndDateBetweenAndType(User user, LocalDate startDate, LocalDate endDate, TransactionType type);
 }

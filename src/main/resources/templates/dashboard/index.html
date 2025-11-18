@@ -106,6 +106,135 @@
                 box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
             }
 
+            /* Modern dark hover effect for expense card */
+            .stat-card.expense {
+                position: relative;
+                overflow: hidden;
+                transition: all 0.3s ease;
+            }
+
+            .stat-card.expense:hover {
+                transform: translateY(-8px) scale(1.02);
+                box-shadow: 0 15px 40px rgba(239, 68, 68, 0.3);
+                border-color: rgba(239, 68, 68, 0.5);
+                background: linear-gradient(145deg, rgba(239, 68, 68, 0.1) 0%, rgba(239, 68, 68, 0.2) 100%);
+            }
+
+            .stat-card.expense::before {
+                content: '';
+                position: absolute;
+                top: 0;
+                left: 0;
+                right: 0;
+                height: 3px;
+                background: linear-gradient(90deg, #EF4444 0%, #DC2626 100%);
+                opacity: 0;
+                transition: opacity 0.3s ease;
+            }
+
+            .stat-card.expense:hover::before {
+                opacity: 1;
+            }
+
+            .stat-card.expense:hover .add-limit-overlay {
+                opacity: 1;
+                visibility: visible;
+            }
+
+            .add-limit-overlay {
+                position: absolute;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background: rgba(18, 18, 18, 0.95);
+                backdrop-filter: blur(10px);
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                opacity: 0;
+                visibility: hidden;
+                transition: all 0.4s ease;
+                border-radius: 1rem;
+            }
+
+            .overlay-buttons {
+                display: flex;
+                gap: 0.5rem;
+                margin-bottom: 0.5rem;
+            }
+
+            .add-limit-btn-overlay,
+            .view-limits-btn-overlay {
+                background: linear-gradient(135deg, #EF4444 0%, #DC2626 100%);
+                color: white;
+                border: none;
+                border-radius: 8px;
+                padding: 0.5rem 0.875rem;
+                font-weight: 500;
+                font-size: 0.75rem;
+                cursor: pointer;
+                transition: all 0.2s ease;
+                box-shadow: 0 2px 8px rgba(239, 68, 68, 0.25);
+                display: flex;
+                align-items: center;
+                gap: 0.375rem;
+                letter-spacing: 0.3px;
+                flex: 1;
+                justify-content: center;
+                min-width: 85px;
+                backdrop-filter: blur(5px);
+                position: relative;
+                overflow: hidden;
+            }
+
+            .add-limit-btn-overlay::before,
+            .view-limits-btn-overlay::before {
+                content: '';
+                position: absolute;
+                top: 0;
+                left: -100%;
+                width: 100%;
+                height: 100%;
+                background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+                transition: left 0.5s ease;
+            }
+
+            .add-limit-btn-overlay:hover::before,
+            .view-limits-btn-overlay:hover::before {
+                left: 100%;
+            }
+
+            .view-limits-btn-overlay {
+                background: linear-gradient(135deg, #6366F1 0%, #4F46E5 100%);
+                box-shadow: 0 2px 8px rgba(99, 102, 241, 0.25);
+            }
+
+            .add-limit-btn-overlay:hover {
+                transform: translateY(-1px) scale(1.02);
+                box-shadow: 0 4px 12px rgba(239, 68, 68, 0.35);
+                background: linear-gradient(135deg, #DC2626 0%, #B91C1C 100%);
+            }
+
+            .view-limits-btn-overlay:hover {
+                transform: translateY(-1px) scale(1.02);
+                box-shadow: 0 4px 12px rgba(99, 102, 241, 0.35);
+                background: linear-gradient(135deg, #4F46E5 0%, #3730A3 100%);
+            }
+
+            .add-limit-btn-overlay i,
+            .view-limits-btn-overlay i {
+                font-size: 0.8rem;
+            }
+
+            .overlay-subtitle {
+                color: rgba(255, 255, 255, 0.7);
+                font-size: 0.8rem;
+                text-align: center;
+                margin-top: 0.25rem;
+            }
+
             .stat-label {
                 color: #666;
                 font-size: 0.95rem;
@@ -813,6 +942,482 @@
                 color: #818CF8;
             }
 
+            /* Spending Limits Styles */
+            .spending-limits-section {
+                background: transparent;
+                border-radius: 1rem;
+                padding: 1.5rem;
+                margin-bottom: 2.5rem;
+                border: 1px solid rgba(255, 255, 255, 0.1);
+            }
+
+            .spending-limits-header {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin-bottom: 1.5rem;
+            }
+
+            .spending-limits-header h3 {
+                color: rgba(255, 255, 255, 0.9);
+                font-size: 1.5rem;
+                font-weight: 600;
+                margin: 0;
+            }
+
+            .limits-grid {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+                gap: 1.5rem;
+            }
+
+            .spending-limit-card {
+                background: rgba(255, 255, 255, 0.05);
+                border: 1px solid rgba(255, 255, 255, 0.1);
+                border-radius: 12px;
+                padding: 1.5rem;
+                position: relative;
+                transition: all 0.3s ease;
+                cursor: pointer;
+            }
+
+            .spending-limit-card:hover {
+                background: rgba(255, 255, 255, 0.08);
+                border-color: rgba(99, 102, 241, 0.3);
+                transform: translateY(-2px);
+                box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+            }
+
+            .spending-limit-card:hover .add-limit-btn {
+                opacity: 1;
+                transform: scale(1);
+            }
+
+            .spending-limit-card.warning {
+                border-color: rgba(251, 191, 36, 0.5);
+                background: rgba(251, 191, 36, 0.05);
+            }
+
+            .spending-limit-card.exceeded {
+                border-color: rgba(239, 68, 68, 0.5);
+                background: rgba(239, 68, 68, 0.05);
+            }
+
+            .limit-header {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin-bottom: 1rem;
+            }
+
+            .limit-header h4 {
+                color: rgba(255, 255, 255, 0.95);
+                font-size: 1.1rem;
+                font-weight: 600;
+                margin: 0;
+            }
+
+            .limit-actions {
+                display: flex;
+                gap: 0.5rem;
+            }
+
+            .limit-actions .btn {
+                padding: 0.25rem 0.5rem;
+                font-size: 0.8rem;
+                border-radius: 0.375rem;
+            }
+
+            .limit-progress {
+                margin-bottom: 1rem;
+            }
+
+            .progress-bar {
+                background: rgba(255, 255, 255, 0.1);
+                height: 8px;
+                border-radius: 10px;
+                overflow: hidden;
+                margin-bottom: 0.5rem;
+            }
+
+            .progress-fill {
+                height: 100%;
+                background: linear-gradient(90deg, #10B981 0%, #059669 100%);
+                border-radius: 10px;
+                transition: width 0.5s ease;
+            }
+
+            .spending-limit-card.warning .progress-fill {
+                background: linear-gradient(90deg, #F59E0B 0%, #D97706 100%);
+            }
+
+            .spending-limit-card.exceeded .progress-fill {
+                background: linear-gradient(90deg, #EF4444 0%, #DC2626 100%);
+            }
+
+            .progress-text {
+                font-size: 0.9rem;
+                color: rgba(255, 255, 255, 0.8);
+                font-weight: 500;
+            }
+
+            .limit-details {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                font-size: 0.8rem;
+            }
+
+            .limit-period {
+                color: rgba(255, 255, 255, 0.6);
+                background: rgba(255, 255, 255, 0.1);
+                padding: 0.25rem 0.5rem;
+                border-radius: 0.375rem;
+            }
+
+            .limit-remaining {
+                color: #10B981;
+                font-weight: 500;
+            }
+
+            .spending-limit-card.exceeded .limit-remaining {
+                color: #EF4444;
+            }
+
+            .add-limit-btn {
+                position: absolute;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%) scale(0.8);
+                opacity: 0;
+                transition: all 0.3s ease;
+                background: linear-gradient(135deg, #6366F1 0%, #4338CA 100%);
+                border: none;
+                border-radius: 50%;
+                width: 50px;
+                height: 50px;
+                color: white;
+                font-size: 1.2rem;
+                box-shadow: 0 8px 20px rgba(99, 102, 241, 0.4);
+                z-index: 10;
+            }
+
+            .no-limits-message {
+                text-align: center;
+                padding: 3rem 1rem;
+                color: rgba(255, 255, 255, 0.6);
+                border: 2px dashed rgba(255, 255, 255, 0.2);
+                border-radius: 1rem;
+            }
+
+            .no-limits-message i {
+                font-size: 3rem;
+                color: rgba(99, 102, 241, 0.3);
+                margin-bottom: 1rem;
+            }
+
+            .no-limits-message h3 {
+                color: rgba(255, 255, 255, 0.8);
+                margin-bottom: 0.5rem;
+            }
+
+            /* Notification dropdown styles */
+            .notification-dropdown {
+                position: absolute;
+                top: calc(100% + 0.5rem);
+                right: 0;
+                width: 350px;
+                background: rgba(25, 25, 25, 0.98);
+                backdrop-filter: blur(10px);
+                border-radius: 12px;
+                box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+                border: 1px solid rgba(255, 255, 255, 0.1);
+                z-index: 1000;
+                opacity: 0;
+                transform: translateY(-10px);
+                visibility: hidden;
+                transition: all 0.3s ease;
+            }
+
+            .notification-dropdown.show {
+                opacity: 1;
+                transform: translateY(0);
+                visibility: visible;
+            }
+
+            .notification-header {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                padding: 1rem;
+                border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            }
+
+            .notification-header h4 {
+                color: rgba(255, 255, 255, 0.9);
+                margin: 0;
+                font-size: 1.1rem;
+            }
+
+            .notification-list {
+                max-height: 300px;
+                overflow-y: auto;
+            }
+
+            .notification-item {
+                display: flex;
+                align-items: start;
+                padding: 1rem;
+                border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+                cursor: pointer;
+                transition: background 0.2s ease;
+            }
+
+            .notification-item:hover {
+                background: rgba(255, 255, 255, 0.05);
+            }
+
+            .notification-item.unread {
+                background: rgba(99, 102, 241, 0.05);
+                border-left: 3px solid #6366F1;
+            }
+
+            .notification-icon {
+                width: 32px;
+                height: 32px;
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                margin-right: 0.75rem;
+                font-size: 0.9rem;
+            }
+
+            .notification-icon.warning {
+                background: rgba(251, 191, 36, 0.2);
+                color: #F59E0B;
+            }
+
+            .notification-icon.danger {
+                background: rgba(239, 68, 68, 0.2);
+                color: #EF4444;
+            }
+
+            .notification-icon.info {
+                background: rgba(59, 130, 246, 0.2);
+                color: #3B82F6;
+            }
+
+            .notification-content {
+                flex: 1;
+            }
+
+            .notification-content h5 {
+                color: rgba(255, 255, 255, 0.9);
+                font-size: 0.9rem;
+                margin: 0 0 0.25rem 0;
+                font-weight: 600;
+            }
+
+            .notification-content p {
+                color: rgba(255, 255, 255, 0.7);
+                font-size: 0.8rem;
+                margin: 0 0 0.25rem 0;
+                line-height: 1.4;
+            }
+
+            .notification-time {
+                color: rgba(255, 255, 255, 0.5);
+                font-size: 0.7rem;
+            }
+
+            .notification-footer {
+                padding: 0.75rem 1rem;
+                border-top: 1px solid rgba(255, 255, 255, 0.1);
+                text-align: center;
+            }
+
+            .no-notifications {
+                text-align: center;
+                padding: 2rem 1rem;
+                color: rgba(255, 255, 255, 0.6);
+            }
+
+            .no-notifications i {
+                font-size: 2rem;
+                color: rgba(255, 255, 255, 0.3);
+                margin-bottom: 0.5rem;
+            }
+
+            /* Modal overlay styles for spending limit modal */
+            .modal-overlay {
+                position: fixed;
+                inset: 0;
+                background: rgba(0, 0, 0, 0.6);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                z-index: 1300;
+            }
+
+            .spending-limit-modal {
+                background: rgba(25, 25, 25, 0.98);
+                backdrop-filter: blur(10px);
+                border-radius: 16px;
+                width: 90%;
+                max-width: 500px;
+                border: 1px solid rgba(255, 255, 255, 0.1);
+                box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5);
+            }
+
+            .modal-header {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                padding: 1.5rem;
+                border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            }
+
+            .modal-header h3 {
+                color: rgba(255, 255, 255, 0.9);
+                margin: 0;
+                font-size: 1.25rem;
+            }
+
+            .modal-close {
+                background: none;
+                border: none;
+                color: rgba(255, 255, 255, 0.6);
+                font-size: 1.5rem;
+                cursor: pointer;
+                padding: 0;
+                width: 32px;
+                height: 32px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                border-radius: 50%;
+                transition: all 0.2s ease;
+            }
+
+            .modal-close:hover {
+                background: rgba(255, 255, 255, 0.1);
+                color: rgba(255, 255, 255, 0.9);
+            }
+
+            .modal-body {
+                padding: 1.5rem;
+            }
+
+            .modal-footer {
+                display: flex;
+                gap: 1rem;
+                padding: 1.5rem;
+                border-top: 1px solid rgba(255, 255, 255, 0.1);
+                justify-content: flex-end;
+            }
+
+            .form-group {
+                margin-bottom: 1.5rem;
+            }
+
+            .form-group label {
+                display: block;
+                color: rgba(255, 255, 255, 0.9);
+                font-weight: 500;
+                margin-bottom: 0.5rem;
+                font-size: 0.9rem;
+            }
+
+            .form-group input,
+            .form-group select {
+                width: 100%;
+                padding: 0.875rem 1rem;
+                background: rgba(255, 255, 255, 0.05);
+                border: 1px solid rgba(255, 255, 255, 0.15);
+                border-radius: 10px;
+                color: rgba(255, 255, 255, 0.95);
+                font-size: 0.9rem;
+                transition: all 0.3s ease;
+                backdrop-filter: blur(5px);
+            }
+
+            .form-group input:focus,
+            .form-group select:focus {
+                outline: none;
+                border-color: #EF4444;
+                box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.15);
+                background: rgba(255, 255, 255, 0.08);
+                transform: translateY(-1px);
+            }
+
+            .form-group input::placeholder {
+                color: rgba(255, 255, 255, 0.5);
+            }
+
+            .form-group select option {
+                background: #1a1a1a;
+                color: rgba(255, 255, 255, 0.9);
+                padding: 0.5rem;
+            }
+
+            .form-help {
+                font-size: 0.8rem;
+                color: rgba(255, 255, 255, 0.6);
+                margin-top: 0.5rem;
+                display: block;
+                font-style: italic;
+            }
+
+            .btn {
+                padding: 0.75rem 1.5rem;
+                border-radius: 10px;
+                font-weight: 600;
+                font-size: 0.9rem;
+                transition: all 0.3s ease;
+                cursor: pointer;
+                border: none;
+                display: inline-flex;
+                align-items: center;
+                gap: 0.5rem;
+                text-decoration: none;
+            }
+
+            .btn-primary {
+                background: linear-gradient(135deg, #EF4444 0%, #DC2626 100%);
+                color: white;
+                box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3);
+            }
+
+            .btn-primary:hover {
+                background: linear-gradient(135deg, #DC2626 0%, #B91C1C 100%);
+                transform: translateY(-2px);
+                box-shadow: 0 6px 20px rgba(239, 68, 68, 0.4);
+            }
+
+            .btn-secondary {
+                background: rgba(255, 255, 255, 0.1);
+                color: rgba(255, 255, 255, 0.8);
+                border: 1px solid rgba(255, 255, 255, 0.2);
+            }
+
+            .btn-secondary:hover {
+                background: rgba(255, 255, 255, 0.15);
+                color: rgba(255, 255, 255, 0.95);
+                transform: translateY(-1px);
+            }
+
+            .btn-outline {
+                background: transparent;
+                border: 1px solid rgba(255, 255, 255, 0.2);
+                color: rgba(255, 255, 255, 0.8);
+            }
+
+            .btn-outline:hover {
+                background: rgba(255, 255, 255, 0.1);
+                border-color: #EF4444;
+                color: #EF4444;
+            }
             /* Modal visibility control */
             .ai-modal:not(.show),
             .goal-modal:not(.show) {
@@ -834,6 +1439,183 @@
                     bottom: 80px;
                     width: auto;
                 }
+            }
+
+            /* View Limits Modal Styles */
+            .view-limits-modal {
+                max-width: 600px;
+                width: 95%;
+            }
+
+            .no-limits-view {
+                text-align: center;
+                padding: 3rem 2rem;
+                color: rgba(255, 255, 255, 0.7);
+            }
+
+            .no-limits-view i {
+                font-size: 4rem;
+                color: rgba(99, 102, 241, 0.3);
+                margin-bottom: 1.5rem;
+            }
+
+            .no-limits-view h4 {
+                color: rgba(255, 255, 255, 0.9);
+                margin-bottom: 1rem;
+                font-size: 1.5rem;
+            }
+
+            .no-limits-view p {
+                margin-bottom: 2rem;
+                font-size: 1rem;
+            }
+
+            .limits-list {
+                max-height: 400px;
+                overflow-y: auto;
+                padding-right: 0.5rem;
+            }
+
+            .limit-view-item {
+                background: rgba(255, 255, 255, 0.05);
+                border: 1px solid rgba(255, 255, 255, 0.1);
+                border-radius: 12px;
+                padding: 1.5rem;
+                margin-bottom: 1rem;
+                transition: all 0.3s ease;
+            }
+
+            .limit-view-item:hover {
+                background: rgba(255, 255, 255, 0.08);
+                border-color: rgba(99, 102, 241, 0.3);
+                transform: translateY(-2px);
+            }
+
+            .limit-view-item.warning {
+                border-color: rgba(251, 191, 36, 0.4);
+                background: rgba(251, 191, 36, 0.05);
+            }
+
+            .limit-view-item.exceeded {
+                border-color: rgba(239, 68, 68, 0.4);
+                background: rgba(239, 68, 68, 0.05);
+            }
+
+            .limit-view-header {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin-bottom: 1rem;
+            }
+
+            .limit-info h4 {
+                color: rgba(255, 255, 255, 0.95);
+                font-size: 1.2rem;
+                font-weight: 600;
+                margin: 0 0 0.5rem 0;
+            }
+
+            .limit-period-badge {
+                background: rgba(99, 102, 241, 0.2);
+                color: #818CF8;
+                padding: 0.25rem 0.75rem;
+                border-radius: 20px;
+                font-size: 0.8rem;
+                font-weight: 500;
+                text-transform: capitalize;
+            }
+
+            .limit-view-item.warning .limit-period-badge {
+                background: rgba(251, 191, 36, 0.2);
+                color: #F59E0B;
+            }
+
+            .limit-view-item.exceeded .limit-period-badge {
+                background: rgba(239, 68, 68, 0.2);
+                color: #EF4444;
+            }
+
+            .limit-progress-section {
+                margin-top: 1rem;
+            }
+
+            .limit-amounts {
+                display: flex;
+                justify-content: space-between;
+                margin-bottom: 0.5rem;
+                font-weight: 600;
+            }
+
+            .current-amount {
+                color: rgba(255, 255, 255, 0.9);
+                font-size: 1.1rem;
+            }
+
+            .limit-amount {
+                color: rgba(255, 255, 255, 0.6);
+                font-size: 1.1rem;
+            }
+
+            .progress-bar-view {
+                background: rgba(255, 255, 255, 0.1);
+                height: 8px;
+                border-radius: 10px;
+                overflow: hidden;
+                margin-bottom: 0.75rem;
+            }
+
+            .progress-fill-view {
+                height: 100%;
+                background: linear-gradient(90deg, #10B981 0%, #059669 100%);
+                border-radius: 10px;
+                transition: width 0.5s ease;
+            }
+
+            .progress-fill-view.warning {
+                background: linear-gradient(90deg, #F59E0B 0%, #D97706 100%);
+            }
+
+            .progress-fill-view.exceeded {
+                background: linear-gradient(90deg, #EF4444 0%, #DC2626 100%);
+            }
+
+            .progress-info {
+                display: flex;
+                justify-content: space-between;
+                font-size: 0.9rem;
+            }
+
+            .usage-percent {
+                color: rgba(255, 255, 255, 0.8);
+                font-weight: 500;
+            }
+
+            .remaining {
+                color: #10B981;
+                font-weight: 500;
+            }
+
+            .remaining.exceeded {
+                color: #EF4444;
+            }
+
+            /* Scrollbar styling for limits list */
+            .limits-list::-webkit-scrollbar {
+                width: 6px;
+            }
+
+            .limits-list::-webkit-scrollbar-track {
+                background: rgba(255, 255, 255, 0.1);
+                border-radius: 3px;
+            }
+
+            .limits-list::-webkit-scrollbar-thumb {
+                background: rgba(99, 102, 241, 0.5);
+                border-radius: 3px;
+            }
+
+            .limits-list::-webkit-scrollbar-thumb:hover {
+                background: rgba(99, 102, 241, 0.7);
             }
         </style>
     </th:block>
@@ -879,6 +1661,20 @@
                     <div class="stat-trend trend-down">
                         <i class="fas fa-arrow-down"></i>
                         <span id="expenseChange">8.3% vs last month</span>
+                    </div>
+                    <!-- Modern Dark Overlay -->
+                    <div class="add-limit-overlay">
+                        <div class="overlay-buttons">
+                            <button class="add-limit-btn-overlay" id="addSpendingLimitBtn">
+                                <i class="fas fa-plus"></i>
+                                Add Limit
+                            </button>
+                            <button class="view-limits-btn-overlay" id="viewSpendingLimitsBtn">
+                                <i class="fas fa-eye"></i>
+                                View & Delete
+                            </button>
+                        </div>
+                        <div class="overlay-subtitle">Set limits and get notifications</div>
                     </div>
                 </div>
             </div>
@@ -1026,6 +1822,8 @@
     <th:block th:fragment="scripts">
         <script src="/js/auth-interceptor.js"></script>
         <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+        <script src="/js/spending-limits.js"></script>
+        <script src="/js/notifications.js"></script>
         <script src="/js/dashboard.js"></script>
     </th:block>
 </body>

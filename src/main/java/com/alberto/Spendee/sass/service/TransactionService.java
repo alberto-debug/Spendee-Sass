@@ -34,6 +34,9 @@ public class TransactionService {
     @Autowired
     private CategoryService categoryService;
 
+    @Autowired
+    private SpendingLimitService spendingLimitService;
+
     /**
      * Get dashboard summary data for a user
      */
@@ -119,7 +122,12 @@ public class TransactionService {
             transaction.setCategory(category);
         }
 
-        return transactionRepository.save(transaction);
+        transaction = transactionRepository.save(transaction);
+
+        // Check spending limits after transaction creation
+        spendingLimitService.checkSpendingLimitsAfterTransaction(user.getEmail(), transaction);
+
+        return transaction;
     }
 
     /**

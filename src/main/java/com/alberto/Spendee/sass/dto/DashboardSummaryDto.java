@@ -1,6 +1,7 @@
 package com.alberto.Spendee.sass.dto;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 public class DashboardSummaryDto {
     private BigDecimal totalIncome;
@@ -9,6 +10,7 @@ public class DashboardSummaryDto {
     private double expenseChange;
     private BigDecimal monthlyIncome;
     private BigDecimal monthlyExpenses;
+    private List<SpendingLimitDto> spendingLimits;
 
     public DashboardSummaryDto(BigDecimal totalIncome, BigDecimal totalExpenses,
                               double incomeChange, double expenseChange,
@@ -19,6 +21,16 @@ public class DashboardSummaryDto {
         this.expenseChange = expenseChange;
         this.monthlyIncome = monthlyIncome != null ? monthlyIncome : BigDecimal.ZERO;
         this.monthlyExpenses = monthlyExpenses != null ? monthlyExpenses : BigDecimal.ZERO;
+    }
+
+    // ...existing getters...
+
+    public List<SpendingLimitDto> getSpendingLimits() {
+        return spendingLimits;
+    }
+
+    public void setSpendingLimits(List<SpendingLimitDto> spendingLimits) {
+        this.spendingLimits = spendingLimits;
     }
 
     public BigDecimal getTotalIncome() {

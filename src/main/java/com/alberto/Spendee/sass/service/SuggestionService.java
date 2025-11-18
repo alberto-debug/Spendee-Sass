@@ -128,7 +128,7 @@ public class SuggestionService {
                         displayShare = Math.min(share, 55.0); // Cap at 55%
                     } else {
                         shareText = "a significant portion";
-                        displayShare = Math.min(share, 45.0); // Cap at 45%
+                        displayShare = Math.min(share, 45.0); // Cap at 45%l
                     }
 
                     SuggestionDto s = new SuggestionDto("OVERVIEW", cat + " dominates spending",

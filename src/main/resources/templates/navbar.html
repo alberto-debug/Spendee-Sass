@@ -26,23 +26,33 @@
                 <i class="fas fa-wallet me-2" style="background: linear-gradient(135deg, #6366F1 0%, #4338CA 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;"></i>Spendee
             </a>
 
-            <!-- User info and dropdown on the right -->
-            <div class="dropdown">
-                <div class="d-flex align-items-center" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                    <div class="text-end me-3 d-none d-sm-block">
-                        <div class="fw-semibold text-white" style="font-size:1.1rem;" th:text="${userFullName != null ? #strings.arraySplit(userFullName,' ')[0] : 'User'}">User</div>
-                        <div id="user-email" class="text-light opacity-75" style="font-size:0.8rem;" th:text="${userEmail}">user@email.com</div>
-                    </div>
-                    <div class="rounded-circle d-flex align-items-center justify-content-center"
-                         style="width:42px; height:42px; background: linear-gradient(135deg, rgba(99, 102, 241, 0.2) 0%, rgba(67, 56, 202, 0.2) 100%); border: 1px solid rgba(255, 255, 255, 0.1);">
-                        <i class="fas fa-user" style="font-size:1.2rem; color:#6366F1;"></i>
-                    </div>
+            <!-- Notification bell and user info on the right -->
+            <div class="d-flex align-items-center">
+                <!-- Notification Bell -->
+                <div class="position-relative me-3" id="notificationBell" style="cursor: pointer;">
+                    <i class="fas fa-bell text-light" style="font-size: 1.2rem;"></i>
+                    <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger"
+                          id="notificationBadge" style="display: none; font-size: 0.6rem;">0</span>
                 </div>
-                <ul class="dropdown-menu dropdown-menu-end"
-                    style="background: rgba(25, 25, 25, 0.95); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.05); box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);">
-                    <li><a class="dropdown-item text-light" href="#" id="profile-modal-link"><i class="fas fa-user-circle me-2 text-primary"></i>Profile</a></li>
-                    <li><a class="dropdown-item text-light" href="/settings"><i class="fas fa-cog me-2 text-primary"></i>Settings</a></li>
-                </ul>
+
+                <!-- User info and dropdown -->
+                <div class="dropdown">
+                    <div class="d-flex align-items-center" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        <div class="text-end me-3 d-none d-sm-block">
+                            <div class="fw-semibold text-white" style="font-size:1.1rem;" th:text="${userFullName != null ? #strings.arraySplit(userFullName,' ')[0] : 'User'}">User</div>
+                            <div id="user-email" class="text-light opacity-75" style="font-size:0.8rem;" th:text="${userEmail}">user@email.com</div>
+                        </div>
+                        <div class="rounded-circle d-flex align-items-center justify-content-center"
+                             style="width:42px; height:42px; background: linear-gradient(135deg, rgba(99, 102, 241, 0.2) 0%, rgba(67, 56, 202, 0.2) 100%); border: 1px solid rgba(255, 255, 255, 0.1);">
+                            <i class="fas fa-user" style="font-size:1.2rem; color:#6366F1;"></i>
+                        </div>
+                    </div>
+                    <ul class="dropdown-menu dropdown-menu-end"
+                        style="background: rgba(25, 25, 25, 0.95); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.05); box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);">
+                        <li><a class="dropdown-item text-light" href="#" id="profile-modal-link"><i class="fas fa-user-circle me-2 text-primary"></i>Profile</a></li>
+                        <li><a class="dropdown-item text-light" href="/settings"><i class="fas fa-cog me-2 text-primary"></i>Settings</a></li>
+                    </ul>
+                </div>
             </div>
         </div>
     </nav>

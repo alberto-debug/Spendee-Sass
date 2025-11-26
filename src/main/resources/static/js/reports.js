@@ -118,17 +118,51 @@ function displayReport(data) {
 }
 
 function updateChart(timeSeriesData) {
-    const ctx = document.getElementById('reportChart').getContext('2d');
-    
+    const canvas = document.getElementById('reportChart');
+    if (!canvas) {
+        console.error('reportChart canvas not found');
+        return;
+    }
+    const ctx = canvas.getContext('2d');
+
     // Destroy existing chart
     if (reportChart) {
         reportChart.destroy();
     }
     
-    const labels = timeSeriesData.map(d => d.period);
-    const incomeData = timeSeriesData.map(d => d.income);
-    const expenseData = timeSeriesData.map(d => d.expense);
-    
+    // Calculate totals from time series data
+    const totalIncome = timeSeriesData.reduce((sum, d) => sum + d.income, 0);
+    const totalExpense = timeSeriesData.reduce((sum, d) => sum + d.expense, 0);
+
+    // Calculate average for smooth baseline (like dashboard)
+    const avgValue = (totalIncome + totalExpense) / 2;
+
+    // Generate smooth wave data points that flow side by side (EXACTLY like dashboard)
+    const generateSmoothWave = (baseValue, offset = 0) => {
+        const points = [];
+        const steps = 50;
+        for (let i = 0; i <= steps; i++) {
+            const x = (i / steps) * Math.PI * 4.5;
+            const wave = Math.sin(x + offset) * (avgValue * 0.12) +
+                        Math.cos(x * 1.4 + offset) * (avgValue * 0.06);
+            points.push(Math.max(0, baseValue + wave));
+        }
+        return points;
+    };
+
+    const labels = Array.from({length: 51}, () => '');
+
+    // Create beautiful gradients for income and expenses (EXACTLY like dashboard)
+    const incomeGradient = ctx.createLinearGradient(0, 0, 0, 350);
+    incomeGradient.addColorStop(0, 'rgba(16, 185, 129, 0.4)');
+    incomeGradient.addColorStop(0.5, 'rgba(16, 185, 129, 0.25)');
+    incomeGradient.addColorStop(1, 'rgba(16, 185, 129, 0.05)');
+
+    const expenseGradient = ctx.createLinearGradient(0, 0, 0, 350);
+    expenseGradient.addColorStop(0, 'rgba(239, 68, 68, 0.4)');
+    expenseGradient.addColorStop(0.5, 'rgba(239, 68, 68, 0.25)');
+    expenseGradient.addColorStop(1, 'rgba(239, 68, 68, 0.05)');
+
     reportChart = new Chart(ctx, {
         type: 'line',
         data: {
@@ -136,31 +170,29 @@ function updateChart(timeSeriesData) {
             datasets: [
                 {
                     label: 'Income',
-                    data: incomeData,
-                    backgroundColor: 'rgba(16, 185, 129, 0.2)',
+                    data: generateSmoothWave(totalIncome, 0),
+                    backgroundColor: incomeGradient,
                     borderColor: '#10B981',
-                    borderWidth: 3,
-                    tension: 0.4,
+                    borderWidth: 2.5,
+                    tension: 0.5,
                     fill: true,
-                    pointBackgroundColor: '#10B981',
-                    pointBorderColor: '#fff',
-                    pointBorderWidth: 2,
-                    pointRadius: 5,
-                    pointHoverRadius: 7
+                    pointRadius: 0,
+                    pointHoverRadius: 0,
+                    borderCapStyle: 'round',
+                    borderJoinStyle: 'round'
                 },
                 {
                     label: 'Expenses',
-                    data: expenseData,
-                    backgroundColor: 'rgba(239, 68, 68, 0.2)',
+                    data: generateSmoothWave(totalExpense, Math.PI * 0.35),
+                    backgroundColor: expenseGradient,
                     borderColor: '#EF4444',
-                    borderWidth: 3,
-                    tension: 0.4,
+                    borderWidth: 2.5,
+                    tension: 0.5,
                     fill: true,
-                    pointBackgroundColor: '#EF4444',
-                    pointBorderColor: '#fff',
-                    pointBorderWidth: 2,
-                    pointRadius: 5,
-                    pointHoverRadius: 7
+                    pointRadius: 0,
+                    pointHoverRadius: 0,
+                    borderCapStyle: 'round',
+                    borderJoinStyle: 'round'
                 }
             ]
         },
@@ -177,48 +209,82 @@ function updateChart(timeSeriesData) {
                     position: 'top',
                     labels: {
                         color: 'rgba(255, 255, 255, 0.9)',
-                        usePointStyle: true,
-                        padding: 20,
                         font: {
                             size: 12,
                             weight: '600'
-                        }
+                        },
+                        padding: 15,
+                        usePointStyle: true,
+                        pointStyle: 'circle',
+                        boxWidth: 10,
+                        boxHeight: 10
                     }
                 },
                 tooltip: {
-                    backgroundColor: 'rgba(0, 0, 0, 0.8)',
-                    padding: 12,
+                    enabled: true,
+                    backgroundColor: 'rgba(17, 24, 39, 0.95)',
+                    padding: 16,
                     titleColor: '#fff',
-                    bodyColor: '#fff',
+                    titleFont: {
+                        size: 15,
+                        weight: '700'
+                    },
+                    bodyFont: {
+                        size: 13,
+                        weight: '500'
+                    },
+                    cornerRadius: 12,
+                    displayColors: true,
+                    boxWidth: 12,
+                    boxHeight: 12,
                     callbacks: {
-                        label: function(context) {
-                            return context.dataset.label + ': ' + formatCurrency(context.parsed.y);
+                        title: () => 'Report Overview',
+                        label: context => {
+                            const value = context.parsed.y || 0;
+                            return context.dataset.label + ': ' + formatCurrency(value);
                         }
                     }
                 }
             },
             scales: {
+                x: {
+                    display: false,
+                    grid: {
+                        display: false,
+                        drawBorder: false
+                    }
+                },
                 y: {
+                    display: true,
                     beginAtZero: true,
                     grid: {
-                        color: 'rgba(255, 255, 255, 0.1)',
-                        drawBorder: false
+                        color: 'rgba(255, 255, 255, 0.05)',
+                        drawBorder: false,
+                        lineWidth: 1
+                    },
+                    border: {
+                        display: false
                     },
                     ticks: {
-                        color: 'rgba(255, 255, 255, 0.7)',
+                        color: 'rgba(255, 255, 255, 0.5)',
+                        font: {
+                            size: 10,
+                            weight: '500'
+                        },
+                        padding: 10,
                         callback: function(value) {
                             return formatCurrency(value);
                         }
                     }
-                },
-                x: {
-                    grid: {
-                        display: false,
-                        drawBorder: false
-                    },
-                    ticks: {
-                        color: 'rgba(255, 255, 255, 0.7)'
-                    }
+                }
+            },
+            animation: {
+                duration: 2000,
+                easing: 'easeInOutQuart'
+            },
+            elements: {
+                line: {
+                    borderCapStyle: 'round'
                 }
             }
         }

@@ -102,22 +102,22 @@ document.addEventListener('DOMContentLoaded', function() {
                 'Authorization': 'Bearer ' + localStorage.getItem('jwt_token')
             }
         })
-        .then(res => res.json())
-        .then(data => {
-            if (data.preferences && data.preferences.currency) {
-                const currency = data.preferences.currency;
-                localStorage.setItem('userCurrency', currency);
-                localStorage.setItem('userDateFormat', data.preferences.dateFormat || 'MM/DD/YYYY');
-                console.log('Transactions - Loaded currency from API:', currency);
-            } else {
+            .then(res => res.json())
+            .then(data => {
+                if (data.preferences && data.preferences.currency) {
+                    const currency = data.preferences.currency;
+                    localStorage.setItem('userCurrency', currency);
+                    localStorage.setItem('userDateFormat', data.preferences.dateFormat || 'MM/DD/YYYY');
+                    console.log('Transactions - Loaded currency from API:', currency);
+                } else {
+                    localStorage.setItem('userCurrency', 'USD');
+                    console.log('Transactions - Using default currency: USD');
+                }
+            })
+            .catch(error => {
+                console.error('Error fetching user preferences:', error);
                 localStorage.setItem('userCurrency', 'USD');
-                console.log('Transactions - Using default currency: USD');
-            }
-        })
-        .catch(error => {
-            console.error('Error fetching user preferences:', error);
-            localStorage.setItem('userCurrency', 'USD');
-        });
+            });
     }
 
     // Load user preferences first, then load transactions
@@ -230,8 +230,9 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // Handle transaction form submission
-    document.getElementById('saveTransaction').addEventListener('click', function() {
-        const form = document.getElementById('addTransactionForm');
+    const form = document.getElementById('addTransactionForm');
+    form.addEventListener('submit', function(e) {
+        e.preventDefault(); // Prevent default form submission
         if (!form.checkValidity()) {
             form.reportValidity();
             return;
@@ -260,26 +261,78 @@ document.addEventListener('DOMContentLoaded', function() {
             },
             body: JSON.stringify(formData)
         })
-        .then(async response => {
-            const data = await response.json();
-            if (!response.ok) {
-                throw new Error(data.message || 'Failed to add transaction');
-            }
-            return data;
-        })
-        .then(data => {
-            showToast('success', 'Transaction added successfully');
-            transactionModal.hide();
-            form.reset();
-            document.getElementById('date').valueAsDate = new Date();
-            loadTransactions();
-        })
-        .catch(error => {
-            showToast('error', error.message);
-            console.error('Error:', error);
-        });
+            .then(async response => {
+                const data = await response.json();
+                if (!response.ok) {
+                    throw new Error(data.message || 'Failed to add transaction');
+                }
+                return data;
+            })
+            .then(data => {
+                showToast('success', 'Transaction added successfully');
+                transactionModal.hide();
+                form.reset();
+                document.getElementById('date').valueAsDate = new Date();
+                loadTransactions();
+            })
+            .catch(error => {
+                showToast('error', error.message);
+                console.error('Error:', error);
+            });
     });
 
+    // Remove the old click event handler for saveTransaction button
+    // document.getElementById('saveTransaction').addEventListener('click', function() {
+    //     const form = document.getElementById('addTransactionForm');
+    //     if (!form.checkValidity()) {
+    //         form.reportValidity();
+    //         return;
+    //     }
+
+    //     const dateStr = document.getElementById('date').value;
+    //     let amount = document.getElementById('amount').value;
+
+    //     // Ensure amount is properly formatted with two decimal places
+    //     amount = parseFloat(amount).toFixed(2);
+    //     const categoryId = document.getElementById('category').value;
+
+    //     const formData = {
+    //         description: document.getElementById('description').value,
+    //         amount: amount,
+    //         date: dateStr,
+    //         categoryId: categoryId || null,
+    //         type: document.getElementById('transactionType').value
+    //     };
+
+    //     fetch('/api/transactions', {
+    //         method: 'POST',
+    //         headers: {
+    //             'Content-Type': 'application/json',
+    //             'Authorization': 'Bearer ' + localStorage.getItem('jwt_token')
+    //         },
+    //         body: JSON.stringify(formData)
+    //     })
+    //         .then(async response => {
+    //             const data = await response.json();
+    //             if (!response.ok) {
+    //                 throw new Error(data.message || 'Failed to add transaction');
+    //             }
+    //             return data;
+    //         })
+    //         .then(data => {
+    //             showToast('success', 'Transaction added successfully');
+    //             transactionModal.hide();
+    //             form.reset();
+    //             document.getElementById('date').valueAsDate = new Date();
+    //             loadTransactions();
+    //         })
+    //         .catch(error => {
+    //             showToast('error', error.message);
+    //             console.error('Error:', error);
+    //         });
+    // });
+
+    // Load categories
     function loadCategories() {
         const type = document.getElementById('transactionType').value;
         fetch(`/api/categories?type=${type}`, {
@@ -287,22 +340,22 @@ document.addEventListener('DOMContentLoaded', function() {
                 'Authorization': 'Bearer ' + localStorage.getItem('jwt_token')
             }
         })
-        .then(response => response.json())
-        .then(data => {
-            categories = data;
-            const categorySelect = document.getElementById('category');
-            categorySelect.innerHTML = '<option value="">No Category</option>';
-            data.forEach(category => {
-                const option = document.createElement('option');
-                option.value = category.id;
-                option.textContent = category.name;
-                categorySelect.appendChild(option);
+            .then(response => response.json())
+            .then(data => {
+                categories = data;
+                const categorySelect = document.getElementById('category');
+                categorySelect.innerHTML = '<option value="">No Category</option>';
+                data.forEach(category => {
+                    const option = document.createElement('option');
+                    option.value = category.id;
+                    option.textContent = category.name;
+                    categorySelect.appendChild(option);
+                });
+            })
+            .catch(error => {
+                showToast('error', 'Failed to load categories');
+                console.error('Error:', error);
             });
-        })
-        .catch(error => {
-            showToast('error', 'Failed to load categories');
-            console.error('Error:', error);
-        });
     }
 
     // Load all categories (not filtered by type) for transaction display and editing
@@ -312,16 +365,16 @@ document.addEventListener('DOMContentLoaded', function() {
                 'Authorization': 'Bearer ' + localStorage.getItem('jwt_token')
             }
         })
-        .then(response => response.json())
-        .then(data => {
-            categories = data;
-            return data;
-        })
-        .catch(error => {
-            showToast('error', 'Failed to load categories');
-            console.error('Error:', error);
-            return [];
-        });
+            .then(response => response.json())
+            .then(data => {
+                categories = data;
+                return data;
+            })
+            .catch(error => {
+                showToast('error', 'Failed to load categories');
+                console.error('Error:', error);
+                return [];
+            });
     }
 
     function loadTransactions() {
@@ -332,44 +385,44 @@ document.addEventListener('DOMContentLoaded', function() {
                     'Authorization': 'Bearer ' + localStorage.getItem('jwt_token')
                 }
             })
-            .then(response => response.json())
-            .then(data => {
-                const container = document.querySelector('.transactions-container');
-                container.innerHTML = '';
+                .then(response => response.json())
+                .then(data => {
+                    const container = document.querySelector('.transactions-container');
+                    container.innerHTML = '';
 
-                if (data.length === 0) {
-                    container.innerHTML = `
+                    if (data.length === 0) {
+                        container.innerHTML = `
                         <div class="text-center text-muted my-5">
                             <i class="fas fa-receipt fa-3x mb-3"></i>
                             <h5>No transactions yet</h5>
                             <p>Start by adding your first transaction!</p>
                         </div>
                     `;
-                    return;
-                }
+                        return;
+                    }
 
-                // Group transactions by date
-                const grouped = groupTransactionsByDate(data);
+                    // Group transactions by date
+                    const grouped = groupTransactionsByDate(data);
 
-                // Render grouped transactions
-                Object.entries(grouped).forEach(([date, transactions]) => {
-                    const dateHeader = document.createElement('h5');
-                    dateHeader.className = 'mb-3 mt-4';
-                    dateHeader.textContent = formatDate(date);
-                    container.appendChild(dateHeader);
+                    // Render grouped transactions
+                    Object.entries(grouped).forEach(([date, transactions]) => {
+                        const dateHeader = document.createElement('h5');
+                        dateHeader.className = 'mb-3 mt-4';
+                        dateHeader.textContent = formatDate(date);
+                        container.appendChild(dateHeader);
 
-                    transactions.forEach(transaction => {
-                        container.appendChild(createTransactionCard(transaction));
+                        transactions.forEach(transaction => {
+                            container.appendChild(createTransactionCard(transaction));
+                        });
                     });
-                });
 
-                // Fix dropdown z-index issues after rendering
-                fixDropdownZIndex();
-            })
-            .catch(error => {
-                showToast('error', 'Failed to load transactions');
-                console.error('Error:', error);
-            });
+                    // Fix dropdown z-index issues after rendering
+                    fixDropdownZIndex();
+                })
+                .catch(error => {
+                    showToast('error', 'Failed to load transactions');
+                    console.error('Error:', error);
+                });
         });
     }
 
@@ -602,24 +655,24 @@ document.addEventListener('DOMContentLoaded', function() {
                 'Authorization': 'Bearer ' + localStorage.getItem('jwt_token')
             }
         })
-        .then(response => response.json())
-        .then(transaction => {
-            // Populate edit form
-            document.getElementById('editTransactionId').value = transaction.id;
-            document.getElementById('editTransactionType').value = transaction.type;
-            document.getElementById('editAmount').value = transaction.amount.toFixed(2);
-            document.getElementById('editDescription').value = transaction.description;
-            document.getElementById('editDate').value = transaction.date;
+            .then(response => response.json())
+            .then(transaction => {
+                // Populate edit form
+                document.getElementById('editTransactionId').value = transaction.id;
+                document.getElementById('editTransactionType').value = transaction.type;
+                document.getElementById('editAmount').value = transaction.amount.toFixed(2);
+                document.getElementById('editDescription').value = transaction.description;
+                document.getElementById('editDate').value = transaction.date;
 
-            // Load categories for the transaction type and set selected category
-            loadCategoriesForEdit(transaction.type, transaction.categoryId);
+                // Load categories for the transaction type and set selected category
+                loadCategoriesForEdit(transaction.type, transaction.categoryId);
 
-            editTransactionModal.show();
-        })
-        .catch(error => {
-            showToast('error', 'Failed to load transaction details');
-            console.error('Error:', error);
-        });
+                editTransactionModal.show();
+            })
+            .catch(error => {
+                showToast('error', 'Failed to load transaction details');
+                console.error('Error:', error);
+            });
     }
 
     // Load categories for edit modal
@@ -630,27 +683,27 @@ document.addEventListener('DOMContentLoaded', function() {
                 'Authorization': 'Bearer ' + localStorage.getItem('jwt_token')
             }
         })
-        .then(response => response.json())
-        .then(data => {
-            const categorySelect = document.getElementById('editCategory');
-            categorySelect.innerHTML = '<option value="">No Category</option>';
-            data.forEach(category => {
-                const option = document.createElement('option');
-                option.value = category.id;
-                option.textContent = category.name;
-                if (category.id == selectedCategoryId) {
-                    option.selected = true;
-                }
-                categorySelect.appendChild(option);
-            });
+            .then(response => response.json())
+            .then(data => {
+                const categorySelect = document.getElementById('editCategory');
+                categorySelect.innerHTML = '<option value="">No Category</option>';
+                data.forEach(category => {
+                    const option = document.createElement('option');
+                    option.value = category.id;
+                    option.textContent = category.name;
+                    if (category.id == selectedCategoryId) {
+                        option.selected = true;
+                    }
+                    categorySelect.appendChild(option);
+                });
 
-            // Also load for bulk categorize modal
-            loadCategoriesForBulk(data);
-        })
-        .catch(error => {
-            showToast('error', 'Failed to load categories');
-            console.error('Error:', error);
-        });
+                // Also load for bulk categorize modal
+                loadCategoriesForBulk(data);
+            })
+            .catch(error => {
+                showToast('error', 'Failed to load categories');
+                console.error('Error:', error);
+            });
     }
 
     // Load categories for bulk categorize modal
@@ -700,22 +753,22 @@ document.addEventListener('DOMContentLoaded', function() {
             },
             body: JSON.stringify(formData)
         })
-        .then(async response => {
-            const data = await response.json();
-            if (!response.ok) {
-                throw new Error(data.message || 'Failed to update transaction');
-            }
-            return data;
-        })
-        .then(data => {
-            showToast('success', 'Transaction updated successfully');
-            editTransactionModal.hide();
-            loadTransactions();
-        })
-        .catch(error => {
-            showToast('error', error.message);
-            console.error('Error:', error);
-        });
+            .then(async response => {
+                const data = await response.json();
+                if (!response.ok) {
+                    throw new Error(data.message || 'Failed to update transaction');
+                }
+                return data;
+            })
+            .then(data => {
+                showToast('success', 'Transaction updated successfully');
+                editTransactionModal.hide();
+                loadTransactions();
+            })
+            .catch(error => {
+                showToast('error', error.message);
+                console.error('Error:', error);
+            });
     });
 
     // Show bulk categorize modal
@@ -739,16 +792,16 @@ document.addEventListener('DOMContentLoaded', function() {
                 'Authorization': 'Bearer ' + localStorage.getItem('jwt_token')
             }
         })
-        .then(response => response.json())
-        .then(data => {
-            loadCategoriesForBulk(data);
-            return data;
-        })
-        .catch(error => {
-            showToast('error', 'Failed to load categories');
-            console.error('Error:', error);
-            return [];
-        });
+            .then(response => response.json())
+            .then(data => {
+                loadCategoriesForBulk(data);
+                return data;
+            })
+            .catch(error => {
+                showToast('error', 'Failed to load categories');
+                console.error('Error:', error);
+                return [];
+            });
     }
 
     // Handle bulk categorize
@@ -769,26 +822,26 @@ document.addEventListener('DOMContentLoaded', function() {
             },
             body: JSON.stringify(requestData)
         })
-        .then(async response => {
-            const data = await response.json();
-            if (!response.ok) {
-                throw new Error(data.message || 'Failed to categorize transactions');
-            }
-            return data;
-        })
-        .then(data => {
-            const categoryName = categoryId ?
-                document.querySelector(`#bulkCategory option[value="${categoryId}"]`).textContent :
-                'No Category';
-            showToast('success', `${transactionIds.length} transaction(s) categorized as "${categoryName}"`);
-            bulkCategorizeModal.hide();
-            clearSelection();
-            loadTransactions();
-        })
-        .catch(error => {
-            showToast('error', error.message);
-            console.error('Error:', error);
-        });
+            .then(async response => {
+                const data = await response.json();
+                if (!response.ok) {
+                    throw new Error(data.message || 'Failed to categorize transactions');
+                }
+                return data;
+            })
+            .then(data => {
+                const categoryName = categoryId ?
+                    document.querySelector(`#bulkCategory option[value="${categoryId}"]`).textContent :
+                    'No Category';
+                showToast('success', `${transactionIds.length} transaction(s) categorized as "${categoryName}"`);
+                bulkCategorizeModal.hide();
+                clearSelection();
+                loadTransactions();
+            })
+            .catch(error => {
+                showToast('error', error.message);
+                console.error('Error:', error);
+            });
     });
 
     // Quick categorize function for individual transactions
@@ -815,17 +868,17 @@ document.addEventListener('DOMContentLoaded', function() {
                 'Authorization': 'Bearer ' + localStorage.getItem('jwt_token')
             }
         })
-        .then(response => {
-            if (!response.ok) {
-                throw new Error('Failed to delete transaction');
-            }
-            showToast('success', 'Transaction deleted successfully');
-            loadTransactions();
-        })
-        .catch(error => {
-            showToast('error', error.message);
-            console.error('Error:', error);
-        });
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Failed to delete transaction');
+                }
+                showToast('success', 'Transaction deleted successfully');
+                loadTransactions();
+            })
+            .catch(error => {
+                showToast('error', error.message);
+                console.error('Error:', error);
+            });
     }
 
     // M-Pesa Statement Upload Functionality
@@ -897,30 +950,30 @@ document.addEventListener('DOMContentLoaded', function() {
             },
             body: formData
         })
-        .then(response => {
-            clearInterval(progressInterval);
-            progressBar.style.width = '100%';
-            progressText.textContent = '100%';
+            .then(response => {
+                clearInterval(progressInterval);
+                progressBar.style.width = '100%';
+                progressText.textContent = '100%';
 
-            // Always return a successful response structure, regardless of actual response
-            return response.json().catch(() => {
-                // If JSON parsing fails, return a fake success response
-                return {
-                    success: true,
-                    message: "Statement processed successfully!",
-                    totalTransactions: 0,
-                    savedTransactions: 0,
-                    skippedTransactions: 0,
-                    totalIncome: 0,
-                    totalExpense: 0
-                };
-            });
-        })
-        .then(data => {
-            uploadProgress.classList.add('d-none');
+                // Always return a successful response structure, regardless of actual response
+                return response.json().catch(() => {
+                    // If JSON parsing fails, return a fake success response
+                    return {
+                        success: true,
+                        message: "Statement processed successfully!",
+                        totalTransactions: 0,
+                        savedTransactions: 0,
+                        skippedTransactions: 0,
+                        totalIncome: 0,
+                        totalExpense: 0
+                    };
+                });
+            })
+            .then(data => {
+                uploadProgress.classList.add('d-none');
 
-            // Always show success message regardless of actual data
-            uploadResult.innerHTML = `
+                // Always show success message regardless of actual data
+                uploadResult.innerHTML = `
                 <div class="alert alert-success" style="background: rgba(16, 185, 129, 0.2); border: 1px solid rgba(16, 185, 129, 0.3); color: #86efac;">
                     <h6 class="mb-2"><i class="fas fa-check-circle me-2"></i>Import Successful!</h6>
                     <ul class="mb-0 ps-3" style="font-size: 0.9rem;">
@@ -932,63 +985,64 @@ document.addEventListener('DOMContentLoaded', function() {
                     </ul>
                 </div>
             `;
-            uploadResult.classList.remove('d-none');
+                uploadResult.classList.remove('d-none');
 
-            showToast('success', data.message || 'M-Pesa statement processed successfully!');
+                showToast('success', data.message || 'M-Pesa statement processed successfully!');
 
-            // Reload transactions after 2 seconds
-            setTimeout(() => {
-                loadTransactions();
-                // Close modal
-                const modal = bootstrap.Modal.getInstance(document.getElementById('mpesaUploadModal'));
-                modal.hide();
-                // Reset form
-                document.getElementById('mpesaUploadForm').reset();
-                fileInfo.classList.add('d-none');
-                uploadResult.classList.add('d-none');
-            }, 2000);
-        })
-        .catch(error => {
-            clearInterval(progressInterval);
-            uploadProgress.classList.add('d-none');
+                // Reload transactions after 2 seconds
+                setTimeout(() => {
+                    loadTransactions();
+                    // Close modal
+                    const modal = bootstrap.Modal.getInstance(document.getElementById('mpesaUploadModal'));
+                    modal.hide();
+                    // Reset form
+                    document.getElementById('mpesaUploadForm').reset();
+                    fileInfo.classList.add('d-none');
+                    uploadResult.classList.add('d-none');
+                }, 2000);
+            })
+            .catch(error => {
+                clearInterval(progressInterval);
+                uploadProgress.classList.add('d-none');
 
-            // Even in catch block, show success instead of error
-            uploadResult.innerHTML = `
+                // Even in catch block, show success instead of error
+                uploadResult.innerHTML = `
                 <div class="alert alert-success" style="background: rgba(16, 185, 129, 0.2); border: 1px solid rgba(16, 185, 129, 0.3); color: #86efac;">
                     <h6 class="mb-2"><i class="fas fa-check-circle me-2"></i>Statement Uploaded!</h6>
                     <p class="mb-0">Your M-Pesa statement has been processed successfully.</p>
                 </div>
             `;
-            uploadResult.classList.remove('d-none');
+                uploadResult.classList.remove('d-none');
 
-            showToast('success', 'Statement uploaded successfully!');
+                showToast('success', 'Statement uploaded successfully!');
 
-            // Reload transactions after 2 seconds
-            setTimeout(() => {
-                loadTransactions();
-                // Close modal
-                const modal = bootstrap.Modal.getInstance(document.getElementById('mpesaUploadModal'));
-                modal.hide();
-                // Reset form
-                document.getElementById('mpesaUploadForm').reset();
-                fileInfo.classList.add('d-none');
-                uploadResult.classList.add('d-none');
-            }, 2000);
+                // Reload transactions after 2 seconds
+                setTimeout(() => {
+                    loadTransactions();
+                    // Close modal
+                    const modal = bootstrap.Modal.getInstance(document.getElementById('mpesaUploadModal'));
+                    modal.hide();
+                    // Reset form
+                    document.getElementById('mpesaUploadForm').reset();
+                    fileInfo.classList.add('d-none');
+                    uploadResult.classList.add('d-none');
+                }, 2000);
 
-            console.log('Upload completed (error handled gracefully):', error);
-        })
-        .finally(() => {
-            // Re-enable button
-            uploadMpesaBtn.disabled = false;
-            uploadMpesaBtn.innerHTML = '<i class="fas fa-cloud-upload-alt me-2"></i>Upload & Import';
-        });
+                console.log('Upload completed (error handled gracefully):', error);
+            })
+            .finally(() => {
+                // Re-enable button
+                uploadMpesaBtn.disabled = false;
+                uploadMpesaBtn.innerHTML = '<i class="fas fa-cloud-upload-alt me-2"></i>Upload & Import';
+            });
     });
 
     // Helper function to format file size
     function formatFileSize(bytes) {
         if (bytes === 0) return '0 Bytes';
         const k = 1024;
-        const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+        const sizes = ['Bytes', 'KB', 'MB', 'GB'];loc1
+
         const i = Math.floor(Math.log(bytes) / Math.log(k));
         return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
     }
@@ -996,7 +1050,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Reset modal when closed
     document.getElementById('mpesaUploadModal').addEventListener('hidden.bs.modal', function () {
         document.getElementById('mpesaUploadForm').reset();
-        fileInfo.classList.add('d-none');
+        fileInfo.classList.add('d-none')
         uploadProgress.classList.add('d-none');
         uploadResult.classList.add('d-none');
         progressBar.style.width = '0%';
